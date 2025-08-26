@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 실제 사용 시 네임스페이스를 인터페이스 경로로 변경 -->
+<mapper namespace=" ">
+    <!-- 여기에 SQL 매핑 정의 -->
+</mapper>
