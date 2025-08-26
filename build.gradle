@@ -16,7 +16,8 @@ ext {
     lombokVersion = '1.18.38'
     aspectjVersion = '1.9.20.1'
     log4j2Version = '2.24.1'
-    jacksonVersion = '2.12.7.1'
+    jacksonDatabind = '2.12.7.1'
+    jacksonCoreAnn  = '2.12.7'
     springSecurityVersion = '5.8.13'
 }
 
@@ -60,9 +61,9 @@ dependencies {
 
     // ===== JSON 처리 =====
     // Jackson - JSON 직렬화/역직렬화 라이브러리 (Spring 5.3.x와 호환되는 최신 버전)
-    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
-    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabind}"
+    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonCoreAnn}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonCoreAnn}"
 
     // ===== 데이터베이스 관련 의존성 =====
     implementation 'com.mysql:mysql-connector-j:9.3.0'
