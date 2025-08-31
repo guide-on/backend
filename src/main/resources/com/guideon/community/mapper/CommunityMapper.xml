@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guideon.community.mapper.CommunityMapper">
+
+    <!-- Post Mapping -->
+    <resultMap id="PostResultMap" type="com.guideon.community.domain.Post">
+        <id property="id" column="id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="category" column="category" javaType="com.guideon.community.enums.PostCategory"/>
+        <result property="freeType" column="free_type" javaType="com.guideon.community.enums.FreeType"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="thumbnailUrl" column="thumbnail_url"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="likeCount" column="like_count"/>
+        <result property="bookmarkCount" column="bookmark_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- CRUD -->
+    <insert id="insertPost" parameterType="com.guideon.community.domain.Post" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO post
+        (member_id, category, free_type, title, content, thumbnail_url, view_count, like_count, bookmark_count, comment_count, is_deleted)
+        VALUES
+            (#{memberId}, #{category}, #{freeType}, #{title}, #{content}, #{thumbnailUrl}, 0, 0, 0, 0, 0)
+    </insert>
+
+    <update id="updatePost" parameterType="com.guideon.community.domain.Post">
+        UPDATE post
+        SET title = #{title},
+            content = #{content},
+            thumbnail_url = #{thumbnailUrl},
+            free_type = #{freeType}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="softDeletePost">
+        UPDATE post SET is_deleted = 1
+        WHERE id = #{postId} AND member_id = #{memberId} AND is_deleted = 0
+    </update>
+
+    <select id="selectPostById" parameterType="long" resultMap="PostResultMap">
+        SELECT * FROM post WHERE id = #{postId}
+    </select>
+
+    <update id="incrementViewCount" parameterType="long">
+        UPDATE post SET view_count = view_count + 1 WHERE id = #{postId}
+    </update>
+
+    <select id="selectOwnerId" parameterType="long" resultType="long">
+        SELECT member_id FROM post WHERE id = #{postId}
+    </select>
+
+    <!-- Images -->
+    <delete id="deletePostImages">
+        DELETE FROM post_image WHERE post_id = #{postId}
+    </delete>
+
+    <insert id="batchInsertPostImages">
+        INSERT INTO post_image (post_id, image_url, sort_order)
+        VALUES
+        <foreach collection="images" item="img" separator=",">
+            (#{postId}, #{img.imageUrl}, #{img.sortOrder})
+        </foreach>
+    </insert>
+
+    <select id="selectPostImages" parameterType="long" resultType="string">
+        SELECT image_url FROM post_image WHERE post_id = #{postId} ORDER BY sort_order ASC
+    </select>
+
+    <!-- Hashtags -->
+    <delete id="deletePostHashtags">
+        DELETE FROM post_hashtag WHERE post_id = #{postId}
+    </delete>
+
+    <insert id="batchInsertPostHashtags">
+        INSERT INTO post_hashtag (post_id, hashtag_id)
+        VALUES
+        <foreach collection="hashtagIds" item="hid" separator=",">
+            (#{postId}, #{hid})
+        </foreach>
+    </insert>
+
+    <select id="selectHashtagsByPostId" parameterType="long" resultType="com.guideon.community.dto.HashtagDto">
+        SELECT h.id AS id, h.name AS name, h.tag_type AS tagType, h.code AS code
+        FROM post_hashtag ph
+                 JOIN hashtag h ON h.id = ph.hashtag_id
+        WHERE ph.post_id = #{postId}
+        ORDER BY h.tag_type, h.name
+    </select>
+
+    <select id="selectHashtagsByIds" resultType="com.guideon.community.domain.Hashtag">
+        SELECT id, name, tag_type AS tagType, code, ref_ksic_code AS refKsicCode, is_active AS isActive,
+        created_at AS createdAt, updated_at AS updatedAt
+        FROM hashtag
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectPostTypeHashtagByCode" parameterType="string" resultType="com.guideon.community.domain.Hashtag">
+        SELECT id, name, tag_type AS tagType, code, ref_ksic_code AS refKsicCode, is_active AS isActive,
+               created_at AS createdAt, updated_at AS UpdatedAt
+        FROM hashtag
+        WHERE tag_type = 'POST_TYPE' AND code = #{code}
+            LIMIT 1
+    </select>
+
+    <select id="selectHashtagsByPostIdsWithPostId" resultType="com.guideon.community.dto.PostIdHashtagRow">
+        SELECT ph.post_id AS postId, h.id AS id, h.name AS name, h.tag_type AS tagType, h.code AS code
+        FROM post_hashtag ph
+        JOIN hashtag h ON h.id = ph.hashtag_id
+        WHERE ph.post_id IN
+        <foreach collection="postIds" item="pid" open="(" separator="," close=")">
+            #{pid}
+        </foreach>
+        ORDER BY ph.post_id, h.tag_type, h.name
+    </select>
+
+    <!-- 리스트 -->
+    <sql id="BaseListSelect">
+        SELECT
+        p.id,
+        p.category,
+        p.free_type AS freeType,
+        p.title,
+        SUBSTRING(p.content,1,160) AS contentPreview,
+        p.thumbnail_url AS thumbnailUrl,
+        p.view_count AS viewCount,
+        p.like_count AS likeCount,
+        p.bookmark_count AS bookmarkCount,
+        p.comment_count AS commentCount,
+        p.created_at AS createdAt
+        FROM post p
+        <where>
+            p.is_deleted = 0
+            <if test="category != null"> AND p.category = #{category}</if>
+            <if test="freeType != null"> AND p.free_type = #{freeType}</if>
+            <if test="hashtagIds != null and hashtagIds.size() > 0">
+                AND p.id IN (
+                SELECT ph.post_id
+                FROM post_hashtag ph
+                WHERE ph.hashtag_id IN
+                <foreach collection="hashtagIds" item="hid" open="(" separator="," close=")">
+                    #{hid}
+                </foreach>
+                GROUP BY ph.post_id
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="listPosts" resultType="com.guideon.community.dto.PostListItemResponse">
+        <include refid="BaseListSelect"/>
+        <choose>
+            <when test="sort == 'POPULAR'">
+                ORDER BY (bookmarkCount*3 + likeCount*2 + viewCount*0.1) DESC, createdAt DESC
+            </when>
+            <when test="sort == 'VIEWS'">
+                ORDER BY viewCount DESC, createdAt DESC
+            </when>
+            <when test="sort == 'BOOKMARKS'">
+                ORDER BY bookmarkCount DESC, createdAt DESC
+            </when>
+            <when test="sort == 'LIKES'">
+                ORDER BY likeCount DESC, createdAt DESC
+            </when>
+            <otherwise>
+                ORDER BY createdAt DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countPosts" resultType="int">
+        SELECT COUNT(1) FROM post p
+        <where>
+            p.is_deleted = 0
+            <if test="category != null"> AND p.category = #{category}</if>
+            <if test="freeType != null"> AND p.free_type = #{freeType}</if>
+            <if test="hashtagIds != null and hashtagIds.size() > 0">
+                AND p.id IN (
+                SELECT ph.post_id
+                FROM post_hashtag ph
+                WHERE ph.hashtag_id IN
+                <foreach collection="hashtagIds" item="hid" open="(" separator="," close=")">
+                    #{hid}
+                </foreach>
+                GROUP BY ph.post_id
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- 검색 -->
+    <sql id="BaseSearchSelect">
+        SELECT
+        p.id,
+        p.category,
+        p.free_type AS freeType,
+        p.title,
+        SUBSTRING(p.content,1,160) AS contentPreview,
+        p.thumbnail_url AS thumbnailUrl,
+        p.view_count AS viewCount,
+        p.like_count AS likeCount,
+        p.bookmark_count AS bookmarkCount,
+        p.comment_count AS commentCount,
+        p.created_at AS createdAt
+        FROM post p
+        <where>
+            p.is_deleted = 0
+            <if test="keyword != null"> AND (p.title LIKE #{keyword} OR p.content LIKE #{keyword})</if>
+            <if test="category != null"> AND p.category = #{category}</if>
+            <if test="freeType != null"> AND p.free_type = #{freeType}</if>
+            <if test="hashtagIds != null and hashtagIds.size() > 0">
+                AND p.id IN (
+                SELECT ph.post_id
+                FROM post_hashtag ph
+                WHERE ph.hashtag_id IN
+                <foreach collection="hashtagIds" item="hid" open="(" separator="," close=")">
+                    #{hid}
+                </foreach>
+                GROUP BY ph.post_id
+                )
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchPosts" resultType="com.guideon.community.dto.PostListItemResponse">
+        <include refid="BaseSearchSelect"/>
+        <choose>
+            <when test="sort == 'POPULAR'">
+                ORDER BY (bookmarkCount*3 + likeCount*2 + viewCount*0.1) DESC, createdAt DESC
+            </when>
+            <when test="sort == 'VIEWS'">
+                ORDER BY viewCount DESC, createdAt DESC
+            </when>
+            <when test="sort == 'BOOKMARKS'">
+                ORDER BY bookmarkCount DESC, createdAt DESC
+            </when>
+            <when test="sort == 'LIKES'">
+                ORDER BY likeCount DESC, createdAt DESC
+            </when>
+            <otherwise>
+                ORDER BY createdAt DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countSearchPosts" resultType="int">
+        SELECT COUNT(1) FROM post p
+        <where>
+            p.is_deleted = 0
+            <if test="keyword != null"> AND (p.title LIKE #{keyword} OR p.content LIKE #{keyword})</if>
+            <if test="category != null"> AND p.category = #{category}</if>
+            <if test="freeType != null"> AND p.free_type = #{freeType}</if>
+            <if test="hashtagIds != null and hashtagIds.size() > 0">
+                AND p.id IN (
+                SELECT ph.post_id
+                FROM post_hashtag ph
+                WHERE ph.hashtag_id IN
+                <foreach collection="hashtagIds" item="hid" open="(" separator="," close=")">
+                    #{hid}
+                </foreach>
+                GROUP BY ph.post_id
+                )
+            </if>
+        </where>
+    </select>
+
+    <!-- Like -->
+    <select id="existsLike" resultType="int">
+        SELECT COUNT(1) FROM post_like WHERE post_id = #{postId} AND member_id = #{memberId}
+    </select>
+    <insert id="insertLike">
+        INSERT INTO post_like (post_id, member_id) VALUES (#{postId}, #{memberId})
+    </insert>
+    <delete id="deleteLike">
+        DELETE FROM post_like WHERE post_id = #{postId} AND member_id = #{memberId}
+    </delete>
+    <update id="incLikeCount">
+        UPDATE post SET like_count = like_count + 1 WHERE id = #{postId}
+    </update>
+    <update id="decLikeCount">
+        UPDATE post SET like_count = GREATEST(like_count - 1, 0) WHERE id = #{postId}
+    </update>
+
+    <!-- Bookmark -->
+    <select id="existsBookmark" resultType="int">
+        SELECT COUNT(1) FROM post_bookmark WHERE post_id = #{postId} AND member_id = #{memberId}
+    </select>
+    <insert id="insertBookmark">
+        INSERT INTO post_bookmark (post_id, member_id) VALUES (#{postId}, #{memberId})
+    </insert>
+    <delete id="deleteBookmark">
+        DELETE FROM post_bookmark WHERE post_id = #{postId} AND member_id = #{memberId}
+    </delete>
+    <update id="incBookmarkCount">
+        UPDATE post SET bookmark_count = bookmark_count + 1 WHERE id = #{postId}
+    </update>
+    <update id="decBookmarkCount">
+        UPDATE post SET bookmark_count = GREATEST(bookmark_count - 1, 0) WHERE id = #{postId}
+    </update>
+
+    <!-- Comments -->
+    <insert id="insertComment" parameterType="com.guideon.community.domain.Comment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO comment (post_id, member_id, parent_comment_id, content, depth)
+        VALUES (#{postId}, #{memberId}, #{parentCommentId}, #{content}, #{depth})
+    </insert>
+
+    <update id="updateComment" parameterType="com.guideon.community.domain.Comment">
+        UPDATE comment SET content = #{content}
+        WHERE id = #{id} AND is_deleted = 0
+    </update>
+
+    <update id="softDeleteComment">
+        UPDATE comment SET is_deleted = 1
+        WHERE id = #{commentId} AND member_id = #{memberId} AND is_deleted = 0
+    </update>
+
+    <select id="selectCommentById" parameterType="long" resultType="com.guideon.community.domain.Comment">
+        SELECT id, post_id AS postId, member_id AS memberId, parent_comment_id AS parentCommentId,
+               content, depth, is_deleted AS isDeleted, created_at AS createdAt, updated_at AS updatedAt
+        FROM comment
+        WHERE id = #{commentId}
+    </select>
+
+    <select id="selectCommentsByPostId" parameterType="long" resultType="com.guideon.community.domain.Comment">
+        SELECT id, post_id AS postId, member_id AS memberId, parent_comment_id AS parentCommentId,
+               content, depth, is_deleted AS isDeleted, created_at AS createdAt, updated_at AS updatedAt
+        FROM comment
+        WHERE post_id = #{postId} AND is_deleted = 0
+        ORDER BY created_at ASC
+    </select>
+
+    <update id="incCommentCount">
+        UPDATE post SET comment_count = comment_count + 1 WHERE id = #{postId}
+    </update>
+    <update id="decCommentCount">
+        UPDATE post SET comment_count = GREATEST(comment_count - 1, 0) WHERE id = #{postId}
+    </update>
+
+    <!-- 인기글: 가중치 스코어 -->
+    <select id="popularPosts" resultType="com.guideon.community.dto.PostListItemResponse">
+        SELECT
+            p.id,
+            p.category,
+            p.free_type AS freeType,
+            p.title,
+            SUBSTRING(p.content,1,160) AS contentPreview,
+            p.thumbnail_url AS thumbnailUrl,
+            p.view_count AS viewCount,
+            p.like_count AS likeCount,
+            p.bookmark_count AS bookmarkCount,
+            p.comment_count AS commentCount,
+            p.created_at AS createdAt
+        FROM post p
+        WHERE p.is_deleted = 0
+        ORDER BY (p.bookmark_count*3 + p.like_count*2 + p.view_count*0.1) DESC, p.created_at DESC
+            LIMIT #{limit}
+    </select>
+
+    <!-- 추천: 회원 관심 KSIC과 매칭되는 SECTOR 태그가 달린 글 우선 -->
+    <select id="recommendPostsByMember" resultType="com.guideon.community.dto.PostListItemResponse">
+        SELECT DISTINCT
+            p.id,
+            p.category,
+            p.free_type AS freeType,
+            p.title,
+            SUBSTRING(p.content,1,160) AS contentPreview,
+            p.thumbnail_url AS thumbnailUrl,
+            p.view_count AS viewCount,
+            p.like_count AS likeCount,
+            p.bookmark_count AS bookmarkCount,
+            p.comment_count AS commentCount,
+            p.created_at AS createdAt
+        FROM post p
+                 JOIN post_hashtag ph ON ph.post_id = p.id
+                 JOIN hashtag h ON h.id = ph.hashtag_id
+        WHERE p.is_deleted = 0
+          AND h.tag_type = 'SECTOR'
+          AND (h.code IN (
+            SELECT ksic_code FROM individual_interest_industry_map WHERE member_id = #{memberId}
+        )
+            OR h.ref_ksic_code IN (
+                SELECT ksic_code FROM individual_interest_industry_map WHERE member_id = #{memberId}
+            ))
+        ORDER BY p.created_at DESC
+            LIMIT #{limit}
+    </select>
+
+</mapper>

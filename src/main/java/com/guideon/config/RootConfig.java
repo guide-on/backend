@@ -19,8 +19,11 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-//@MapperScan(basePackages = {})
-//@ComponentScan(basePackages = {})
+@MapperScan(basePackages = {"com.guideon.community.mapper"})
+@ComponentScan(basePackages = {
+        "com.guideon.community",      // 서비스/컨트롤러/예외
+        "com.guideon.common"          // 공통 응답/예외/스토리지
+})
 @EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;
