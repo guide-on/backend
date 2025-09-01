@@ -1,0 +1,17 @@
+#!/bin/sh
+
+commit_msg_file=$1
+commit_msg=$(head -n1 "$commit_msg_file")
+
+# 제목 형식: <type>: <제목> (마침표 없이 50자 이내)
+conventional_regex="^(feat|fix|docs|style|refactor|test|chore): [^.]{1,50}$"
+
+if ! echo "$commit_msg" | grep -qE "$conventional_regex"; then
+  echo "\033[0;31m✖ 커밋 메시지 형식이 잘못되었습니다.\033[0m"
+  echo ""
+  echo "형식: <type>: <제목>"
+  echo "예시: feat: 사용자 로그인 기능 추가"
+  echo ""
+  echo "제목은 50자 이내이며 마침표로 끝나면 안 됩니다."
+  exit 1
+fi
