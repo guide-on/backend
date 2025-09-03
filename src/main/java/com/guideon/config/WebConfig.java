@@ -8,7 +8,7 @@ import javax.servlet.Filter;
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class };
+        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class };
     }
 
     @Override

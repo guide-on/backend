@@ -100,6 +100,12 @@ dependencies {
     implementation 'org.springframework.data:spring-data-redis:2.7.5'
     implementation 'io.lettuce:lettuce-core:6.1.8.RELEASE'
 
+    // ====== 인증 관련 의존성 ======
+    // coolsms api (전화번호 인증)
+    implementation 'net.nurigo:sdk:4.3.0'
+    // Google SMTP api 관련
+    implementation 'javax.mail:mail:1.4.7'
+
     // ===== 테스트 관련 의존성 =====
     testImplementation "org.springframework:spring-test:${springVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"

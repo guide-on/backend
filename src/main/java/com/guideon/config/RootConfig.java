@@ -25,6 +25,8 @@ import javax.sql.DataSource;
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
         "com.guideon.common.redis",
+        "com.guideon.verification.sender",
+        "com.guideon.verification.service",
 })
 @EnableTransactionManagement
 public class RootConfig {
