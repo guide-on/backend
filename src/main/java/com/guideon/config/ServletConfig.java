@@ -9,7 +9,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebMvc
 @ComponentScan(basePackages = {
-        "com.guideon.exception"
+        "com.guideon.exception",
+        "com.guideon.security.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 
