@@ -19,8 +19,13 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-//@MapperScan(basePackages = {})
-//@ComponentScan(basePackages = {})
+@MapperScan(basePackages = {
+        "com.guideon.member.mapper",
+})
+@ComponentScan(basePackages = {
+        "com.guideon.member.service",
+        "com.guideon.common.redis",
+})
 @EnableTransactionManagement
 public class RootConfig {
     @Value("${jdbc.driver}") String driver;

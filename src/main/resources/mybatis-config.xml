@@ -7,4 +7,13 @@
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
+
+    <typeAliases>
+        <package name="com.guideon.security.account.domain"/>
+    </typeAliases>
+
+    <typeHandlers>
+        <typeHandler handler="com.guideon.member.handler.GenderTypeHandler"
+                    javaType="com.guideon.member.domain.Gender"/>
+    </typeHandlers>
 </configuration>
