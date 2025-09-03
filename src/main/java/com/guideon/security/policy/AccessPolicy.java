@@ -17,17 +17,6 @@ public class AccessPolicy {
             new AccessRule(null, "/webjars/**", null),
             new AccessRule(null, "/webjars/springfox-swagger-ui/**", null),
 
-            // 금융 API 공개 GET
-            new AccessRule(HttpMethod.GET, "/api/news/**", null),   // 경제뉴스 API 공개
-            new AccessRule(HttpMethod.GET, "/api/gold/**", null),   // 금융차트 금 API 공개
-            new AccessRule(HttpMethod.GET, "/api/stocks/**", null), // 금융차트 주식 API 공개
-            new AccessRule(HttpMethod.POST, "/api/stocks/**", null), // 금융차트 주식 API 공개
-            new AccessRule(HttpMethod.GET, "/api/upbit/**", null),  // 금융차트 가상화페 API 공개 get 방식
-            new AccessRule(HttpMethod.POST, "/api/upbit/**", null),  // 금융차트 가상화페 API 공개 post 방식
-            new AccessRule(HttpMethod.GET, "/api/exchange/**", null),   // 금융차트 외환 API 공개
-            new AccessRule(HttpMethod.GET, "/api/health/**", null),     // 금융차트  API 연결여부 공개
-            new AccessRule(HttpMethod.GET, "/api/terms/**", null),      // 금융용어  API  공개
-
             // 회원 관련
             new AccessRule(HttpMethod.POST, "/api/member", null), // 회원가입
             new AccessRule(HttpMethod.GET, "/api/member/exist/email/**", null), // 이메일 중복 체크
@@ -37,13 +26,7 @@ public class AccessPolicy {
 
             // 인증 토큰
             new AccessRule(HttpMethod.POST, "/api/auth/reissue", null), // 토큰 재발급
-            new AccessRule(HttpMethod.POST, "/api/auth/logout", null),  // 로그아웃
-
-            // 소셜 로그인
-            new AccessRule(null, "/login/**", null),
-            new AccessRule(null, "/oauth2/**", null),
-            new AccessRule(null, "/login/oauth2/**", null),
-            new AccessRule(null, "/api/gemini/**", null)
+            new AccessRule(HttpMethod.POST, "/api/auth/logout", null)   // 로그아웃
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)
