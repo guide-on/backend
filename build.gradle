@@ -110,6 +110,9 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+
+    // env 관련
+    implementation 'io.github.cdimascio:dotenv-java:3.0.2'
 }
 
 test {

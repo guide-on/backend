@@ -17,6 +17,9 @@ public class AccessPolicy {
             new AccessRule(null, "/webjars/**", null),
             new AccessRule(null, "/webjars/springfox-swagger-ui/**", null),
 
+            // (권장) CORS preflight 허용
+            new AccessRule(HttpMethod.OPTIONS, "/**", null),
+
             // 회원 관련
             new AccessRule(HttpMethod.POST, "/api/member", null), // 회원가입
             new AccessRule(HttpMethod.GET, "/api/member/exist/email/**", null), // 이메일 중복 체크
@@ -26,7 +29,13 @@ public class AccessPolicy {
 
             // 인증 토큰
             new AccessRule(HttpMethod.POST, "/api/auth/reissue", null), // 토큰 재발급
-            new AccessRule(HttpMethod.POST, "/api/auth/logout", null)   // 로그아웃
+            new AccessRule(HttpMethod.POST, "/api/auth/logout", null),   // 로그아웃
+
+            // ── 커뮤니티: 비로그인 허용(홈/리스트/검색/인기) ───────────
+            // 리스트
+            new AccessRule(HttpMethod.GET, "/api/community/posts", null), // 리스트 조회
+            new AccessRule(HttpMethod.GET, "/api/community/posts/search", null), // 검색
+            new AccessRule(HttpMethod.GET, "/api/community/posts/popular", null) // 인기
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)
