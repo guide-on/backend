@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.document.mapper.BusinessInfoMapper">
+
+    <!-- 사업체 정보 저장 -->
+    <insert id="insert" parameterType="BusinessInfoVO"
+            useGeneratedKeys="true" keyProperty="businessId">
+        INSERT INTO user_business_info (
+            member_id,
+            loan_purpose,
+            industry_code,
+            business_period,
+            revenue,
+            employees,
+            place_type
+        ) VALUES (
+                     #{memberId},
+                     #{loanPurpose},
+                     #{industryCode},
+                     #{businessPeriod},
+                     #{revenue},
+                     #{employees},
+                     #{placeType}
+                 )
+    </insert>
+
+    <!-- ID로 조회 -->
+    <select id="selectByBusinessId" parameterType="long" resultType="BusinessInfoVO">
+        SELECT
+            business_id as businessId,
+            member_id as memberId,
+            loan_purpose as loanPurpose,
+            industry_code as industryCode,
+            business_period as businessPeriod,
+            revenue,
+            employees,
+            place_type as placeType,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM user_business_info
+        WHERE business_id = #{businessId}
+    </select>
+
+    <!-- ID로 조회 -->
+    <select id="selectByMemberId" parameterType="long" resultType="BusinessInfoVO">
+        SELECT
+            business_id as businessId,
+            member_id as memberId,
+            loan_purpose as loanPurpose,
+            industry_code as industryCode,
+            business_period as businessPeriod,
+            revenue,
+            employees,
+            place_type as placeType,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM user_business_info
+        WHERE member_id = #{memberId}
+    </select>
+
+</mapper>
