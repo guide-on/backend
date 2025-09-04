@@ -43,7 +43,7 @@ bin/
 .DS_Store
 
 ### env file ###
-src/main/resources/.env
+.env
 
 # 민감 정보 보호
 src/main/resources/application.properties
