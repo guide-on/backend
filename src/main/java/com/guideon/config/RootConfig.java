@@ -19,8 +19,13 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.guideon.community.mapper"})
+@MapperScan(basePackages = {
+        "com.guideon.member.mapper",
+        "com.guideon.community.mapper",
+})
 @ComponentScan(basePackages = {
+        "com.guideon.member.service",
+        "com.guideon.common.redis",
         "com.guideon.community",      // 서비스/컨트롤러/예외
         "com.guideon.common"          // 공통 응답/예외/스토리지
 })
@@ -36,6 +41,10 @@ public class RootConfig {
 
     @Bean
     public DataSource dataSource() {
+        // 임시 로그
+        System.out.println("[DEBUG] jdbc.url=" + url);
+        System.out.println("[DEBUG] jdbc.driver=" + driver);
+
         HikariConfig config = new HikariConfig();
 
         config.setDriverClassName(driver);

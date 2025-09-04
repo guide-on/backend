@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 실제 사용 시 네임스페이스를 인터페이스 경로로 변경 -->
+<mapper namespace="com.guideon.member.mapper.MemberMapper">
+    <resultMap id="authMap" type="AuthVO">
+        <result property="memberId" column="member_id" />
+        <result property="auth" column="auth" />
+    </resultMap>
+    <resultMap id="memberMap" type="MemberVO">
+        <id property="memberId" column="member_id" />
+        <result property="memberType" column="member_type" />
+        <result property="nickname" column="nickname" />
+        <result property="email" column="email" />
+        <result property="password" column="password" />
+        <result property="name" column="name" />
+        <result property="phone" column="phone" />
+        <result property="gender" column="gender" />
+        <result property="birth" column="birth" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+        <collection property="authList" resultMap="authMap" />
+    </resultMap>
+
+    <!-- 회원 정보 조회 (LEFT JOIN으로 권한 정보 포함) -->
+    <select id="get" resultMap="memberMap">
+        SELECT m.member_id, member_type, nickname, email, password, name, phone, gender, birth, created_at, updated_at, auth
+        FROM
+            member m
+                LEFT OUTER JOIN member_auth a
+                                ON m.member_id = a.member_id
+        WHERE m.member_id = #{id} OR m.email = #{email}
+            LIMIT 1
+    </select>
+</mapper>

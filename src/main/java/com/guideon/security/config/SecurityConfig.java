@@ -1,95 +1,126 @@
 package com.guideon.security.config;
 
+import com.guideon.security.filter.AuthenticationErrorFilter;
+import com.guideon.security.filter.JwtAuthenticationFilter;
+import com.guideon.security.filter.JwtUsernamePasswordAuthenticationFilter;
+import com.guideon.security.handler.CustomAccessDeniedHandler;
+import com.guideon.security.handler.CustomAuthenticationEntryPoint;
+import com.guideon.security.policy.AccessPolicy;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.web.cors.CorsConfiguration;                  // CORS
-import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
+import org.springframework.web.filter.CharacterEncodingFilter;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableWebSecurity
 @Slf4j
+@ComponentScan(basePackages = {"com.guideon.security"})
+@RequiredArgsConstructor
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    private final UserDetailsService userDetailsService;
+    // JWT 인증 필터
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    // 인증 예외처리 필터
+    private final AuthenticationErrorFilter authenticationErrorFilter;
 
-    /**
-     * 로컬 개발 편의 모드:
-     * - /api/community/** 전체 오픈
-     * - CSRF 비활성화 (개발 중 POST/PUT/DELETE 테스트 편의)
-     * 운영 전에는 반드시 false!
-     */
-    @Value("${guideon.security.dev-relaxed:false}")
-    private boolean devRelaxed;
+    // 401/403 에러 처리 핸들러
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
+    private final CustomAccessDeniedHandler accessDeniedHandler;
 
-    // 공용 공개 리소스(permitAll)
-    private static final String[] PUBLIC_PATHS = new String[] {
-            "/", "/error", "/favicon.ico",
-            // 정적/문서
-            "/resources/**", "/webjars/**",
-            "/swagger-ui.html", "/swagger-resources/**", "/v2/api-docs",
-            "/css/**", "/js/**", "/images/**", "/index.html"
-            // 로그인/로그아웃은 아래 formLogin()/logout()에서 permitAll 처리
-    };
+    @Autowired
+    private JwtUsernamePasswordAuthenticationFilter jwtUsernamePasswordAuthenticationFilter;
 
+    @Bean
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.cors(); // 필요 시
-
-        if (devRelaxed) {
-            log.warn("▶▶ [DEV RELAXED MODE] 활성화: /api/community/** permitAll, CSRF disabled");
-            http.csrf().disable();
-
-            http.authorizeRequests()
-                    .antMatchers(PUBLIC_PATHS).permitAll()
-                    .antMatchers("/api/community/**").permitAll()   // 개발 중 커뮤니티 API 오픈
-                    .anyRequest().authenticated()
-                    .and()
-                    .formLogin()     // 기본 로그인 페이지 사용 (loginPage 미지정)
-                    .permitAll()
-                    .and()
-                    .logout()
-                    .logoutUrl("/logout")
-                    .permitAll();
-
-            // H2 콘솔 같은 걸 쓸 경우(프레임 허용):
-            // http.headers().frameOptions().sameOrigin();
-
-        } else {
-            // 운영 기본 정책: CSRF 기본 활성(명시 호출 불필요)
-            http.authorizeRequests()
-                    .antMatchers(PUBLIC_PATHS).permitAll()
-                    .anyRequest().authenticated()
-                    .and()
-                    .formLogin()
-                    .permitAll() // 기본 로그인 페이지
-                    .and()
-                    .logout()
-                    .logoutUrl("/logout")
-                    .permitAll();
-        }
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
     }
 
-    /** CORS (Vite dev 등에서 필요 시) */
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration c = new CorsConfiguration();
-        c.setAllowCredentials(true);
-        c.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173"
-        ));
-        c.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        c.setAllowedHeaders(Arrays.asList(
-                "Authorization","Cache-Control","Content-Type","X-Requested-With","X-CSRF-TOKEN"
-        ));
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        // UserDetailsService와 PasswordEncoder 설정
+        auth.userDetailsService(userDetailsService)  // 커스텀 서비스 사용
+                .passwordEncoder(passwordEncoder()); // BCrypt 암호화 사용
+    }
+
+    /**
+     * CORS 설정 - 모든 도메인 허용
+     */
+    @Bean
+    public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", c);
-        return source;
+        CorsConfiguration config = new CorsConfiguration();
+
+        config.setAllowCredentials(true);               // 인증 정보 포함 허용
+        config.addAllowedOriginPattern("*");            // 모든 도메인 허용
+        config.addAllowedHeader("*");                   // 모든 헤더 허용
+        config.addAllowedMethod("*");                   // 모든 HTTP 메서드 허용
+
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+
+    // 문자셋 필터 메서드
+    public CharacterEncodingFilter encodingFilter() {
+        CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
+        encodingFilter.setEncoding("UTF-8");           // UTF-8 인코딩 설정
+        encodingFilter.setForceEncoding(true);         // 강제 인코딩 적용
+        return encodingFilter;
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http.addFilterBefore(encodingFilter(), CsrfFilter.class)
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+        //예외 처리 설정
+        http.exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler);
+
+        //  HTTP 보안 설정
+        http.httpBasic().disable()      // 기본 HTTP 인증 비활성화
+                .csrf().disable()           // CSRF 보호 비활성화 (REST API에서는 불필요)
+                .formLogin().disable()      // 폼 로그인 비활성화 (JSON 기반 API 사용)
+                .sessionManagement()        // 세션 관리 설정
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);  // 무상태 모드
+
+        http.cors();
+
+        ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry registry = http.authorizeRequests();
+        // permitAll 경로 등록
+        for (AccessPolicy.AccessRule rule : AccessPolicy.PERMIT_ALL) {
+            if (rule.method != null) {
+                registry.antMatchers(rule.method, rule.uriPattern).permitAll();
+            } else {
+                registry.antMatchers(rule.uriPattern).permitAll();
+            }
+        }
+        registry.anyRequest().authenticated(); // 나머지 인증 필요
     }
 }

@@ -99,4 +99,30 @@ INSERT INTO hashtag (name, tag_type, code) VALUES
                                                ('기타','POST_TYPE','OTHER')
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 
+-- ===== SECTOR 해시태그 시드 =====
+INSERT INTO hashtag (name, tag_type, code, is_active) VALUES
+                                                          ('요식업',  'SECTOR', 'FOOD',     1),
+                                                          ('미용',    'SECTOR', 'BEAUTY',   1),
+                                                          ('의류',    'SECTOR', 'APPAREL',  1),
+                                                          ('소매업',  'SECTOR', 'RETAIL',   1),
+                                                          ('서비스업','SECTOR', 'SERVICE',  1)
+    ON DUPLICATE KEY UPDATE
+                         name = VALUES(name),
+                         is_active = VALUES(is_active);
+
+
+-- ===== GENERIC 해시태그 샘플 (선택) =====
+INSERT INTO hashtag (name, tag_type, code, is_active) VALUES
+                                                          ('정부지원', 'GENERIC', NULL, 1),
+                                                          ('세무',     'GENERIC', NULL, 1),
+                                                          ('노무',     'GENERIC', NULL, 1),
+                                                          ('마케팅',   'GENERIC', NULL, 1),
+                                                          ('창업',     'GENERIC', NULL, 1),
+                                                          ('운영팁',   'GENERIC', NULL, 1)
+ON DUPLICATE KEY UPDATE
+                     name = VALUES(name),
+                     is_active = VALUES(is_active);
+
+
+
 SET FOREIGN_KEY_CHECKS = 1;

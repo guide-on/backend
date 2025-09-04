@@ -10,6 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 @ComponentScan(basePackages = {
         "com.guideon.exception",
+        "com.guideon.security.controller",
         "com.guideon.community.controller",
         "com.guideon.common.exception"   // GlobalExceptionHandler
 })
@@ -25,6 +26,9 @@ public class ServletConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/webjars/**")
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
+
+        registry.addResourceHandler("/swagger-ui/**")
+                .addResourceLocations("classpath:/META-INF/resources/webjars/springfox-swagger-ui/");
 
         // Swagger 메타데이터 리소스 설정
         registry.addResourceHandler("/swagger-resources/**")
