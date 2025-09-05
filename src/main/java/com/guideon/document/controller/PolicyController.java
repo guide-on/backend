@@ -33,7 +33,7 @@ public class PolicyController {
 
             // 1. 소상공인 자격 판별
             if (!policyService.isSmallBusiness(businessId)) {
-                Map<String, Object> response = new HashMap<>();
+                Map<String, Object> response = new LinkedHashMap<>();
                 response.put("success", false);
                 response.put("isSmallBusiness", false);
                 response.put("message", "소상공인 자격 요건에 해당하지 않습니다.");
@@ -44,7 +44,7 @@ public class PolicyController {
             // 2. 정책자금 필터링
             List<PolicyDTO> eligiblePolicies = policyService.filterEligiblePolicies(businessId);
 
-            Map<String, Object> response = new HashMap<>();
+            Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.put("isSmallBusiness", true);
             response.put("eligiblePolicies", eligiblePolicies);

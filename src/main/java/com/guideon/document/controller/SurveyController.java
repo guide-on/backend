@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @Log4j2
@@ -57,7 +56,7 @@ public class SurveyController {
             Long memberId = (Long) authInfo.get("memberId");
 
             // 2. 회원 정보에서 industryCode 조회 (현재는 임시값)
-            String industryCode = "56101";
+            String industryCode = "56111";
 
             // 3. BusinessInfoDTO 생성
             BusinessInfoDTO businessInfoDTO = BusinessInfoDTO.builder()
@@ -74,7 +73,7 @@ public class SurveyController {
             Long businessId = surveyService.saveUserSurvey(businessInfoDTO);
 
             // 5. 성공 응답
-            Map<String, Object> response = new HashMap<>();
+            Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.put("message", "설문 응답이 저장되었습니다.");
             response.put("businessId", businessId);
@@ -83,7 +82,7 @@ public class SurveyController {
 
         } catch (Exception e) {
             // 6. 에러 응답
-            Map<String, Object> errorResponse = new HashMap<>();
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
             errorResponse.put("success", false);
             errorResponse.put("message", "설문 응답 저장 중 오류가 발생했습니다: " + e.getMessage());
 

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.document.mapper.LoanSessionMapper">
+
+    <!-- 대출 세션 생성 -->
+    <insert id="insert" parameterType="LoanSessionVO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO loan_sessions (
+            business_id,
+            policy_id,
+            session_status,
+            required_documents,
+            submitted_documents,
+            validated_documents,
+            progress_percentage
+        ) VALUES (
+                     #{businessId},
+                     #{policyId},
+                     #{sessionStatus},
+                     #{requiredDocuments},
+                     #{submittedDocuments},
+                     #{validatedDocuments},
+                     #{progressPercentage}
+                 )
+    </insert>
+
+    <!-- 세션 ID로 조회 -->
+    <select id="selectById" parameterType="long" resultType="LoanSessionVO">
+        SELECT
+            id,
+            business_id as businessId,
+            policy_id as policyId,
+            session_status as sessionStatus,
+            required_documents as requiredDocuments,
+            submitted_documents as submittedDocuments,
+            validated_documents as validatedDocuments,
+            progress_percentage as progressPercentage,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM loan_sessions
+        WHERE id = #{sessionId}
+    </select>
+
+</mapper>
