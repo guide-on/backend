@@ -21,11 +21,13 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {
         "com.guideon.member.mapper",
+        "com.guideon.document.mapper",
         "com.guideon.community.mapper",
 })
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
         "com.guideon.common.redis",
+        "com.guideon.document.service",
         "com.guideon.community",      // 서비스/컨트롤러/예외
         "com.guideon.common"          // 공통 응답/예외/스토리지
 })
