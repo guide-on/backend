@@ -35,4 +35,33 @@
         ORDER BY policy_id
     </select>
 
+    <!-- 정책자금 ID로 단건 조회 -->
+    <select id="selectByPolicyId" parameterType="long" resultType="PolicyVO">
+        SELECT
+            policy_id as policyId,
+            policy_name as policyName,
+            policy_type as policyType,
+            loan_purpose as loanPurpose,
+            min_business_period as minBusinessPeriod,
+            max_business_period as maxBusinessPeriod,
+            min_revenue as minRevenue,
+            max_revenue as maxRevenue,
+            required_documents as requiredDocuments,
+            special_conditions as specialConditions,
+            loan_limit as loanLimit,
+            term_years as termYears,
+            grace_years as graceYears,
+            quarter,
+            base_rate as baseRate,
+            spread_pp as spreadPp,
+            rate_type as rateType,
+            max_discount as maxDiscount,
+            discount_rules as discountRules,
+            is_active as isActive,
+            created_at as createdAt,
+            updated_at as updatedAt
+        FROM policies
+        WHERE policy_id = #{policyId}
+          AND is_active = 1
+    </select>
 </mapper>
