@@ -38,8 +38,7 @@
             revenue,
             employees,
             place_type as placeType,
-            created_at as createdAt,
-            updated_at as updatedAt
+            created_at as createdAt
         FROM user_business_info
         WHERE business_id = #{businessId}
     </select>
@@ -55,8 +54,7 @@
             revenue,
             employees,
             place_type as placeType,
-            created_at as createdAt,
-            updated_at as updatedAt
+            created_at as createdAt
         FROM user_business_info
         WHERE member_id = #{memberId}
     </select>
