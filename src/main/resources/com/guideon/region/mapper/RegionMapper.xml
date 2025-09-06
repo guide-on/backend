@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.region.mapper.RegionMapper">
+    <select id="selectSidoList" resultType="com.guideon.region.dto.SidoDTO">
+        SELECT sgg_code AS code, sgg AS name
+        FROM region_code
+        WHERE RIGHT(sgg_code,3) = '000'
+        ORDER BY name
+    </select>
+</mapper>
