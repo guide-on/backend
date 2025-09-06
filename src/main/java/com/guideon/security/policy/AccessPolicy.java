@@ -26,7 +26,17 @@ public class AccessPolicy {
 
             // 인증 토큰
             new AccessRule(HttpMethod.POST, "/api/auth/reissue", null), // 토큰 재발급
-            new AccessRule(HttpMethod.POST, "/api/auth/logout", null)   // 로그아웃
+            new AccessRule(HttpMethod.POST, "/api/auth/logout", null),  // 로그아웃
+
+            // 사업자번호 상태 관련
+            new AccessRule(HttpMethod.GET, "/api/biz/status/check", null),
+
+            // 업종 관련
+            new AccessRule(HttpMethod.GET, "/api/industry/catalog/tags", null),
+            new AccessRule(HttpMethod.GET, "/api/industry/code/ksic5", null),
+
+            // 지역 관련
+            new AccessRule(HttpMethod.GET, "/api/region/sido", null)
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)

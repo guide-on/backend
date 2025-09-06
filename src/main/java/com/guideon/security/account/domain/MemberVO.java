@@ -23,6 +23,7 @@ public class MemberVO {
     private String phone;
     private Gender gender;
     private LocalDate birth;
+    private String residenceSggCode;
     private Date createdAt;
     private Date updatedAt;
 

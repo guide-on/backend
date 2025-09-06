@@ -21,12 +21,19 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {
         "com.guideon.member.mapper",
+        "com.guideon.region.mapper",
+        "com.guideon.industry.code.mapper"
 })
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
         "com.guideon.common.redis",
         "com.guideon.verification.sender",
         "com.guideon.verification.service",
+        "com.guideon.industry.catalog.config",
+        "com.guideon.industry.code.service",
+        "com.guideon.region.service",
+        "com.guideon.business.external.nts.service",
+        "com.guideon.business.external.nts.client"
 })
 @EnableTransactionManagement
 public class RootConfig {

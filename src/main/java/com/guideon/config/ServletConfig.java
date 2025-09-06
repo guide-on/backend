@@ -1,10 +1,18 @@
 package com.guideon.config;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.List;
 
 @Configuration
 @EnableWebMvc
@@ -12,7 +20,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "com.guideon.exception",
         "com.guideon.security.controller",
         "com.guideon.member.controller",
-        "com.guideon.verification.controller"
+        "com.guideon.verification.controller",
+        "com.guideon.industry.catalog.controller",
+        "com.guideon.industry.code.controller",
+        "com.guideon.region.controller",
+        "com.guideon.business.external.nts.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -39,4 +51,17 @@ public class ServletConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/META-INF/resources/");
     }
 
+    @Override
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        ObjectMapper mapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+
+        MappingJackson2HttpMessageConverter json = new MappingJackson2HttpMessageConverter();
+        json.setObjectMapper(mapper);
+
+        // 가장 앞에 두어 우선 적용되게
+        converters.add(0, json);
+    }
 }
