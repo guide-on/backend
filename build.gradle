@@ -18,6 +18,7 @@ ext {
     log4j2Version = '2.24.1'
     jacksonDatabind = '2.12.7.1'
     jacksonCoreAnn  = '2.12.7'
+    jacksonJsr310   = '2.12.7'
     springSecurityVersion = '5.8.13'
 }
 
@@ -64,6 +65,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabind}"
     implementation "com.fasterxml.jackson.core:jackson-core:${jacksonCoreAnn}"
     implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonCoreAnn}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonJsr310}"
 
     // ===== 데이터베이스 관련 의존성 =====
     implementation 'com.mysql:mysql-connector-j:9.3.0'
