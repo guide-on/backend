@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.funds.mapper.FundsMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="FundsVO" type="com.guideon.funds.domain.Funds">
+        <id property="id" column="id"/>
+        <result property="year" column="year"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="name" column="name"/>
+        <result property="status" column="status"/>
+        <result property="target" column="target"/>
+        <result property="purpose" column="purpose"/>
+        <result property="rate" column="rate"/>
+        <result property="term" column="term"/>
+        <result property="limitAmount" column="limit_amount"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 정책지원금 전체 목록 조회 -->
+    <select id="selectAllFunds" resultMap="FundsVO">
+        SELECT 
+            id, year, category_code, name, status, target, purpose,
+            rate, term, limit_amount, created_at, updated_at
+        FROM support_fund
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 정책지원금 상세 조회 -->
+    <select id="selectFundsById" parameterType="long" resultMap="FundsVO">
+        SELECT 
+            id, year, category_code, name, status, target, purpose,
+            rate, term, limit_amount, created_at, updated_at
+        FROM support_fund
+        WHERE id = #{id}
+    </select>
+
+    <!-- 정책지원금 이름으로 검색 -->
+    <select id="selectFundsByNameLike" parameterType="string" resultMap="FundsVO">
+        SELECT
+            id, year, category_code, name, status, target, purpose,
+            rate, term, limit_amount, created_at, updated_at
+        FROM support_fund
+        WHERE name LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 회원별 북마크된 정책지원금 ID 목록 조회 -->
+    <select id="selectSavedFundsIdsByMemberId" parameterType="long" resultType="long">
+        SELECT funds_id
+        FROM saved_funds
+        WHERE member_id = #{memberId}
+    </select>
+
+
+</mapper>
