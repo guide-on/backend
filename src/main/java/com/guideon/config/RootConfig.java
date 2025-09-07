@@ -23,11 +23,13 @@ import javax.sql.DataSource;
         "com.guideon.member.mapper",
         "com.guideon.document.mapper",
         "com.guideon.community.mapper",
+        "com.guideon.hybridEvaluation.mapper"
 })
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
         "com.guideon.common.redis",
         "com.guideon.document.service",
+        "com.guideon.hybridEvaluation",
         "com.guideon.community",      // 서비스/컨트롤러/예외
         "com.guideon.common"          // 공통 응답/예외/스토리지
 })

@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guideon.hybridEvaluation.mapper.CreditEvaluationMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="CreditEvaluationResultMap" type="com.guideon.hybridEvaluation.domain.CreditEvaluation">
+        <result property="userId" column="user_id"/>
+        <result property="evaluationDate" column="evaluation_date"/>
+        
+        <!-- 상환이력 -->
+        <result property="totalOverdueCount" column="total_overdue_count"/>
+        <result property="recent12mOverdueCount" column="recent_12m_overdue_count"/>
+        <result property="maxOverdueDays" column="max_overdue_days"/>
+        <result property="currentOverdueAmount" column="current_overdue_amount"/>
+        <result property="loanDefaultHistory" column="loan_default_history"/>
+        <result property="creditCardDelayRate" column="credit_card_delay_rate"/>
+        <result property="paymentConsistencyScore" column="payment_consistency_score"/>
+        
+        <!-- 부채수준 -->
+        <result property="totalDebtAmount" column="total_debt_amount"/>
+        <result property="monthlyIncome" column="monthly_income"/>
+        <result property="debtToIncomeRatio" column="debt_to_income_ratio"/>
+        <result property="creditCardUtilizationRate" column="credit_card_utilization_rate"/>
+        <result property="securedVsUnsecuredRatio" column="secured_vs_unsecured_ratio"/>
+        
+        <!-- 신용거래기간 -->
+        <result property="creditHistoryMonths" column="credit_history_months"/>
+        <result property="oldestCreditAccountMonths" column="oldest_credit_account_months"/>
+        <result property="newCreditInquiries6m" column="new_credit_inquiries_6m"/>
+        
+        <!-- 신용형태 -->
+        <result property="activeCreditCardCount" column="active_credit_card_count"/>
+        <result property="totalCreditLimit" column="total_credit_limit"/>
+        <result property="loanTypeDiversity" column="loan_type_diversity"/>
+        <result property="financialInstitutionCount" column="financial_institution_count"/>
+        
+        <!-- 비금융/마이데이터 -->
+        <result property="alternativeCreditScore" column="alternative_credit_score"/>
+        
+        <!-- 메타데이터 -->
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- SQL 조각 정의 -->
+    <sql id="creditEvaluationColumns">
+        user_id, evaluation_date,
+        total_overdue_count, recent_12m_overdue_count, max_overdue_days,
+        current_overdue_amount, loan_default_history, credit_card_delay_rate,
+        payment_consistency_score, total_debt_amount, monthly_income,
+        debt_to_income_ratio, credit_card_utilization_rate, secured_vs_unsecured_ratio,
+        credit_history_months, oldest_credit_account_months, new_credit_inquiries_6m,
+        active_credit_card_count, total_credit_limit, loan_type_diversity,
+        financial_institution_count, alternative_credit_score,
+        created_at, updated_at
+    </sql>
+
+    <sql id="whereConditions">
+        <where>
+            <if test="userId != null and userId != ''">
+                AND user_id = #{userId}
+            </if>
+            <if test="startDate != null">
+                AND evaluation_date &gt;= #{startDate}
+            </if>
+            <if test="endDate != null">
+                AND evaluation_date &lt;= #{endDate}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 신용평가 데이터 생성 -->
+    <insert id="insertCreditEvaluation" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluation">
+        INSERT INTO credit_evaluation (
+            user_id, evaluation_date,
+            total_overdue_count, recent_12m_overdue_count, max_overdue_days,
+            current_overdue_amount, loan_default_history, credit_card_delay_rate,
+            payment_consistency_score, total_debt_amount, monthly_income,
+            debt_to_income_ratio, credit_card_utilization_rate, secured_vs_unsecured_ratio,
+            credit_history_months, oldest_credit_account_months, new_credit_inquiries_6m,
+            active_credit_card_count, total_credit_limit, loan_type_diversity,
+            financial_institution_count, alternative_credit_score
+        ) VALUES (
+            #{userId}, #{evaluationDate},
+            #{totalOverdueCount}, #{recent12mOverdueCount}, #{maxOverdueDays},
+            #{currentOverdueAmount}, #{loanDefaultHistory}, #{creditCardDelayRate},
+            #{paymentConsistencyScore}, #{totalDebtAmount}, #{monthlyIncome},
+            #{debtToIncomeRatio}, #{creditCardUtilizationRate}, #{securedVsUnsecuredRatio},
+            #{creditHistoryMonths}, #{oldestCreditAccountMonths}, #{newCreditInquiries6m},
+            #{activeCreditCardCount}, #{totalCreditLimit}, #{loanTypeDiversity},
+            #{financialInstitutionCount}, #{alternativeCreditScore}
+        )
+    </insert>
+
+    <!-- 신용평가 데이터 수정 -->
+    <update id="updateCreditEvaluation" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluation">
+        UPDATE credit_evaluation
+        SET 
+            total_overdue_count = #{totalOverdueCount},
+            recent_12m_overdue_count = #{recent12mOverdueCount},
+            max_overdue_days = #{maxOverdueDays},
+            current_overdue_amount = #{currentOverdueAmount},
+            loan_default_history = #{loanDefaultHistory},
+            credit_card_delay_rate = #{creditCardDelayRate},
+            payment_consistency_score = #{paymentConsistencyScore},
+            total_debt_amount = #{totalDebtAmount},
+            monthly_income = #{monthlyIncome},
+            debt_to_income_ratio = #{debtToIncomeRatio},
+            credit_card_utilization_rate = #{creditCardUtilizationRate},
+            secured_vs_unsecured_ratio = #{securedVsUnsecuredRatio},
+            credit_history_months = #{creditHistoryMonths},
+            oldest_credit_account_months = #{oldestCreditAccountMonths},
+            new_credit_inquiries_6m = #{newCreditInquiries6m},
+            active_credit_card_count = #{activeCreditCardCount},
+            total_credit_limit = #{totalCreditLimit},
+            loan_type_diversity = #{loanTypeDiversity},
+            financial_institution_count = #{financialInstitutionCount},
+            alternative_credit_score = #{alternativeCreditScore},
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = #{userId} AND evaluation_date = #{evaluationDate}
+    </update>
+
+    <!-- 특정 사용자의 특정 평가일자 데이터 조회 -->
+    <select id="selectCreditEvaluation" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationColumns"/>
+        FROM credit_evaluation
+        WHERE user_id = #{userId} AND evaluation_date = #{evaluationDate}
+    </select>
+
+    <!-- 특정 사용자의 최신 신용평가 데이터 조회 -->
+    <select id="selectLatestCreditEvaluation" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationColumns"/>
+        FROM credit_evaluation
+        WHERE user_id = #{userId}
+        ORDER BY evaluation_date DESC
+        LIMIT 1
+    </select>
+
+    <!-- 신용평가 데이터 목록 조회 (페이징) -->
+    <select id="selectCreditEvaluationList" parameterType="com.guideon.hybridEvaluation.dto.CreditEvaluationListRequest" 
+            resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationColumns"/>
+        FROM credit_evaluation
+        <include refid="whereConditions"/>
+        ORDER BY 
+        <choose>
+            <when test="sortBy == 'userId'">user_id</when>
+            <when test="sortBy == 'createdAt'">created_at</when>
+            <otherwise>evaluation_date</otherwise>
+        </choose>
+        <choose>
+            <when test="sortOrder == 'ASC'">ASC</when>
+            <otherwise>DESC</otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 신용평가 데이터 총 개수 조회 -->
+    <select id="countCreditEvaluationList" parameterType="com.guideon.hybridEvaluation.dto.CreditEvaluationListRequest" 
+            resultType="int">
+        SELECT COUNT(*)
+        FROM credit_evaluation
+        <include refid="whereConditions"/>
+    </select>
+
+    <!-- 특정 사용자의 신용평가 이력 조회 -->
+    <select id="selectCreditEvaluationHistory" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationColumns"/>
+        FROM credit_evaluation
+        WHERE user_id = #{userId}
+        ORDER BY evaluation_date DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <!-- 특정 사용자의 신용평가 이력 개수 조회 -->
+    <select id="countCreditEvaluationHistory" resultType="int">
+        SELECT COUNT(*)
+        FROM credit_evaluation
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 신용평가 데이터 삭제 (물리적 삭제) -->
+    <delete id="deleteCreditEvaluation">
+        DELETE FROM credit_evaluation
+        WHERE user_id = #{userId} AND evaluation_date = #{evaluationDate}
+    </delete>
+
+    <!-- 특정 사용자의 모든 신용평가 데이터 삭제 -->
+    <delete id="deleteAllCreditEvaluationByUserId">
+        DELETE FROM credit_evaluation
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 신용평가 데이터 존재 여부 확인 -->
+    <select id="existsCreditEvaluation" resultType="boolean">
+        SELECT COUNT(*) &gt; 0
+        FROM credit_evaluation
+        WHERE user_id = #{userId} AND evaluation_date = #{evaluationDate}
+    </select>
+
+</mapper>

@@ -11,6 +11,7 @@
     <typeAliases>
         <package name="com.guideon.security.account.domain"/>
         <package name="com.guideon.document.domain"/>
+        <package name="com.guideon.hybridEvaluation.domain"/>
     </typeAliases>
 
     <typeHandlers>
