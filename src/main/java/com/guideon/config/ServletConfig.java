@@ -13,7 +13,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "com.guideon.security.controller",
         "com.guideon.document.controller",
         "com.guideon.community.controller",
-        "com.guideon.common.exception"   // GlobalExceptionHandler
+        "com.guideon.common.exception",   // GlobalExceptionHandler
+        "com.guideon.funds"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

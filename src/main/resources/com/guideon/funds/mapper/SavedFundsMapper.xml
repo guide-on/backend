@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.funds.mapper.SavedFundsMapper">
+
+    <!-- SavedFundsVO ResultMap -->
+    <resultMap id="SavedFundsVO" type="com.guideon.funds.domain.SavedFunds">
+        <id property="savedFundsId" column="saved_funds_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="fundsId" column="funds_id"/>
+        <result property="createdAt" column="created_at"/>
+        <association property="funds" javaType="com.guideon.funds.domain.Funds">
+            <id property="id" column="sf_id"/>
+            <result property="year" column="sf_year"/>
+            <result property="categoryCode" column="sf_category_code"/>
+            <result property="name" column="sf_name"/>
+            <result property="status" column="sf_status"/>
+            <result property="target" column="sf_target"/>
+            <result property="purpose" column="sf_purpose"/>
+            <result property="rate" column="sf_rate"/>
+            <result property="term" column="sf_term"/>
+            <result property="limitAmount" column="sf_limit_amount"/>
+            <result property="createdAt" column="sf_created_at"/>
+            <result property="updatedAt" column="sf_updated_at"/>
+        </association>
+    </resultMap>
+
+    <!-- 정책지원금 북마크 추가 -->
+    <insert id="insertSavedFunds">
+        INSERT INTO saved_funds (member_id, funds_id, created_at)
+        VALUES (#{memberId}, #{fundsId}, NOW())
+    </insert>
+
+    <!-- 정책지원금 북마크 해제 -->
+    <delete id="deleteSavedFunds">
+        DELETE FROM saved_funds 
+        WHERE member_id = #{memberId} 
+        AND funds_id = #{fundsId}
+    </delete>
+
+    <!-- 회원별 북마크한 정책지원금 목록 조회 (support_fund 정보 포함) -->
+    <select id="selectSavedFundsByMemberId" parameterType="long" resultMap="SavedFundsVO">
+        SELECT 
+            sf_saved.saved_funds_id,
+            sf_saved.member_id,
+            sf_saved.funds_id,
+            sf_saved.created_at,
+            sf.id AS sf_id,
+            sf.year AS sf_year,
+            sf.category_code AS sf_category_code,
+            sf.name AS sf_name,
+            sf.status AS sf_status,
+            sf.target AS sf_target,
+            sf.purpose AS sf_purpose,
+            sf.rate AS sf_rate,
+            sf.term AS sf_term,
+            sf.limit_amount AS sf_limit_amount,
+            sf.created_at AS sf_created_at,
+            sf.updated_at AS sf_updated_at
+        FROM saved_funds sf_saved
+        INNER JOIN support_fund sf ON sf_saved.funds_id = sf.id
+        WHERE sf_saved.member_id = #{memberId}
+        ORDER BY sf_saved.created_at DESC
+    </select>
+
+    <!-- 특정 회원의 특정 정책지원금 북마크 여부 확인 -->
+    <select id="existsSavedFunds" resultType="boolean">
+        SELECT COUNT(1) > 0
+        FROM saved_funds 
+        WHERE member_id = #{memberId} 
+        AND funds_id = #{fundsId}
+    </select>
+
+    <!-- 회원별 북마크 개수 -->
+    <select id="countSavedFundsByMemberId" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM saved_funds sf_saved
+        INNER JOIN support_fund sf ON sf_saved.funds_id = sf.id
+        WHERE sf_saved.member_id = #{memberId}
+    </select>
+
+</mapper>

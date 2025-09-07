@@ -64,6 +64,7 @@ dependencies {
     implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonDatabind}"
     implementation "com.fasterxml.jackson.core:jackson-core:${jacksonCoreAnn}"
     implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonCoreAnn}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonCoreAnn}"
 
     // ===== 데이터베이스 관련 의존성 =====
     implementation 'com.mysql:mysql-connector-j:9.3.0'
