@@ -21,7 +21,7 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {
         "com.guideon.member.mapper",
-        "com.guideon.document.mapper",
+        "com.guideon.document.mapper", 
         "com.guideon.community.mapper",
         "com.guideon.hybridEvaluation.mapper"
 })

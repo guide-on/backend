@@ -3,6 +3,7 @@ package com.guideon.hybridEvaluation.controller;
 import com.guideon.common.dto.CommonResponseDTO;
 import com.guideon.hybridEvaluation.dto.*;
 import com.guideon.hybridEvaluation.service.CreditEvaluationService;
+import com.guideon.hybridEvaluation.service.CreditEvaluationResultService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -25,6 +26,7 @@ import java.util.List;
 public class CreditEvaluationController {
     
     private final CreditEvaluationService creditEvaluationService;
+    private final CreditEvaluationResultService creditEvaluationResultService;
     
     @PostMapping
     @ApiOperation(value = "신용평가 데이터 생성", notes = "새로운 신용평가 데이터를 생성합니다.")
@@ -154,6 +156,65 @@ public class CreditEvaluationController {
             creditEvaluationService.deleteAllCreditEvaluationByUserId(userId);
         
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{userId}/score-result")
+    @ApiOperation(value = "신용평가 데이터와 계산된 점수 결과 함께 조회", 
+                  notes = "특정 사용자의 최신 신용평가 데이터와 계산된 점수 결과를 함께 조회합니다.")
+    public ResponseEntity<String> getCreditEvaluationWithScore(
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String userId) {
+        
+        log.info("신용평가 데이터 및 점수 결과 조회 요청: userId={}", userId);
+        
+        try {
+            // 최신 신용평가 데이터 조회
+            CommonResponseDTO<CreditEvaluationResponse> evaluationResponse = 
+                creditEvaluationService.getLatestCreditEvaluation(userId);
+            
+            // 점수 결과 조회
+            Long userIdLong = Long.valueOf(userId);
+            CommonResponseDTO<CreditEvaluationResultResponse> scoreResponse = 
+                creditEvaluationResultService.getCreditEvaluationResult(userIdLong);
+            
+            // 결과 조합
+            StringBuilder result = new StringBuilder();
+            result.append("=== 신용평가 데이터 ===\n");
+            if (evaluationResponse.isSuccess() && evaluationResponse.getData() != null) {
+                CreditEvaluationResponse data = evaluationResponse.getData();
+                result.append(String.format("사용자ID: %s\n", data.getUserId()));
+                result.append(String.format("평가일시: %s\n", data.getEvaluationDate()));
+                result.append(String.format("현재연체금액: %s\n", data.getCurrentOverdueAmount()));
+                result.append(String.format("최대연체일수: %d일\n", data.getMaxOverdueDays()));
+                result.append(String.format("최근12개월연체횟수: %d회\n", data.getRecent12mOverdueCount()));
+                result.append(String.format("부채소득비율: %s%%\n", data.getDebtToIncomeRatio()));
+                result.append(String.format("신용카드이용률: %s%%\n", data.getCreditCardUtilizationRate()));
+                result.append(String.format("신용거래기간: %d개월\n", data.getCreditHistoryMonths()));
+                result.append(String.format("활성신용카드수: %d장\n", data.getActiveCreditCardCount()));
+                result.append(String.format("총신용한도: %s원\n", data.getTotalCreditLimit()));
+            } else {
+                result.append("신용평가 데이터 없음\n");
+            }
+            
+            result.append("\n=== 계산된 점수 결과 ===\n");
+            if (scoreResponse.isSuccess() && scoreResponse.getData() != null) {
+                CreditEvaluationResultResponse data = scoreResponse.getData();
+                result.append(String.format("총점: %d점\n", data.getTotalScore()));
+                result.append(String.format("상환이력 점수: %d점\n", data.getRepaymentHistoryScore()));
+                result.append(String.format("부채수준 점수: %d점\n", data.getDebtLevelScore()));
+                result.append(String.format("신용거래기간 점수: %d점\n", data.getCreditPeriodScore()));
+                result.append(String.format("신용형태 점수: %d점\n", data.getCreditPatternScore()));
+                result.append(String.format("비금융 점수: %d점\n", data.getNonFinancialScore()));
+                result.append(String.format("점수계산일시: %s\n", data.getScoreCalculatedDttm()));
+            } else {
+                result.append("점수 결과 없음\n");
+            }
+            
+            return ResponseEntity.ok(result.toString());
+            
+        } catch (Exception e) {
+            log.error("신용평가 데이터 및 점수 결과 조회 중 오류: {}", e.getMessage(), e);
+            return ResponseEntity.ok("오류 발생: " + e.getMessage());
+        }
     }
 }
 

@@ -4,8 +4,10 @@ import com.guideon.common.dto.CommonResponseDTO;
 import com.guideon.common.exception.BadRequestException;
 import com.guideon.common.exception.NotFoundException;
 import com.guideon.hybridEvaluation.domain.CreditEvaluation;
+import com.guideon.hybridEvaluation.domain.CreditEvaluationResult;
 import com.guideon.hybridEvaluation.dto.*;
 import com.guideon.hybridEvaluation.mapper.CreditEvaluationMapper;
+import com.guideon.hybridEvaluation.mapper.CreditEvaluationResultMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 public class CreditEvaluationServiceImpl implements CreditEvaluationService {
     
     private final CreditEvaluationMapper creditEvaluationMapper;
+    private final CreditEvaluationResultMapper creditEvaluationResultMapper;
+    private final CreditScoreCalculationService creditScoreCalculationService;
     
     @Override
     @Transactional
@@ -44,6 +48,25 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
                     creditEvaluation.getUserId(), 
                     creditEvaluation.getEvaluationDate()
                 );
+                
+                // 신용점수 계산 및 저장
+                try {
+                    CreditEvaluationResult scoreResult = creditScoreCalculationService.calculateCreditScore(savedData);
+                    
+                    // 기존 결과가 있다면 삭제 후 새로 저장
+                    if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getUserId())) {
+                        creditEvaluationResultMapper.deleteCreditEvaluationResult(scoreResult.getUserId());
+                        log.info("기존 신용점수 결과 삭제됨: userId={}", scoreResult.getUserId());
+                    }
+                    
+                    creditEvaluationResultMapper.insertCreditEvaluationResult(scoreResult);
+                    log.info("신용점수 계산 및 저장 완료: userId={}, totalScore={}", 
+                            scoreResult.getUserId(), scoreResult.getTotalScore());
+                    
+                } catch (Exception scoreException) {
+                    log.error("신용점수 계산 중 오류 발생: {}", scoreException.getMessage(), scoreException);
+                    // 신용점수 계산 실패해도 신용평가 생성은 성공으로 처리
+                }
                 
                 // Entity를 Response DTO로 변환
                 CreditEvaluationResponse response = convertToResponse(savedData);
@@ -89,6 +112,26 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
                     creditEvaluation.getUserId(), 
                     creditEvaluation.getEvaluationDate()
                 );
+                
+                // 신용점수 재계산 및 저장
+                try {
+                    CreditEvaluationResult scoreResult = creditScoreCalculationService.calculateCreditScore(updatedData);
+                    
+                    // 기존 결과 업데이트 또는 새로 생성
+                    if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getUserId())) {
+                        creditEvaluationResultMapper.updateCreditEvaluationResult(scoreResult);
+                        log.info("신용점수 결과 업데이트 완료: userId={}, totalScore={}", 
+                                scoreResult.getUserId(), scoreResult.getTotalScore());
+                    } else {
+                        creditEvaluationResultMapper.insertCreditEvaluationResult(scoreResult);
+                        log.info("신용점수 결과 새로 생성 완료: userId={}, totalScore={}", 
+                                scoreResult.getUserId(), scoreResult.getTotalScore());
+                    }
+                    
+                } catch (Exception scoreException) {
+                    log.error("신용점수 재계산 중 오류 발생: {}", scoreException.getMessage(), scoreException);
+                    // 신용점수 계산 실패해도 신용평가 수정은 성공으로 처리
+                }
                 
                 // Entity를 Response DTO로 변환
                 CreditEvaluationResponse response = convertToResponse(updatedData);
