@@ -54,5 +54,24 @@
         </foreach>
     </update>
 
+    <!-- 서류 ID로 조회 -->
+    <select id="selectById" parameterType="Long" resultType="DocumentUploadsVO">
+        SELECT * FROM document_uploads
+        WHERE id = #{documentId}
+    </select>
+
+    <!-- 파일 업로드 정보 업데이트 -->
+    <update id="updateFileInfo">
+        UPDATE document_uploads
+        SET original_filename = #{originalFilename},
+            stored_filename = #{storedFilename},
+            file_path = #{filePath},
+            file_size = #{fileSize},
+            mime_type = #{mimeType},
+            upload_status = #{uploadStatus},
+            is_selected = true,
+            uploaded_at = NOW()
+        WHERE id = #{documentId}
+    </update>
 
 </mapper>

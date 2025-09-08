@@ -37,4 +37,8 @@ public interface DocumentService {
      */
     Map<String, Object> getDocumentStatus(Long sessionId);
 
+    /**
+     * 파일 직접 업로드
+     */
+    Map<String, Object> uploadFile(Long sessionId, Long documentId, MultipartFile file);
 }

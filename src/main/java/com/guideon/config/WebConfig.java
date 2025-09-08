@@ -2,14 +2,19 @@ package com.guideon.config;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvBuilder;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+
+import javax.servlet.*;
+
 import com.guideon.security.config.SecurityConfig;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-import javax.servlet.Filter;
 
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
+
+    // 업로드 설정 상수
+    private static final long MAX_FILE_SIZE = 1024 * 1024 * 10L;      // 10MB (개별 파일)
+    private static final long MAX_REQUEST_SIZE = 1024 * 1024 * 15L;   // 15MB (전체 요청)
+    private static final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 2;   // 2MB (메모리 임계값)
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
@@ -63,5 +68,25 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         characterEncodingFilter.setForceEncoding(true);     // 응답 데이터도 UTF-8 강제 인코딩
 
         return new Filter[] { characterEncodingFilter };
+    }
+
+    @Override
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+
+        registration.setInitParameter("allowCasualMultipartParsing", "true");
+
+        final String UPLOAD_LOCATION = System.getProperty("UPLOAD_BASE_PATH", "/tmp/uploads");
+
+        // 디버그 로그 추가
+        System.out.println("[UPLOAD] Using location: " + UPLOAD_LOCATION);
+
+        MultipartConfigElement multipartConfig = new MultipartConfigElement(
+                UPLOAD_LOCATION,        // 업로드 파일 임시 저장 디렉토리
+                MAX_FILE_SIZE,          // 개별 파일 최대 크기 (10MB)
+                MAX_REQUEST_SIZE,       // 전체 요청 최대 크기 (15MB)
+                FILE_SIZE_THRESHOLD     // 메모리 임계값 (2MB 이하는 메모리에서 처리)
+        );
+        registration.setMultipartConfig(multipartConfig);
     }
 }

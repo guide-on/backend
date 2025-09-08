@@ -256,6 +256,102 @@ public class DocumentServiceImpl implements DocumentService {
         return response;
     }
 
+    @Override
+    public Map<String, Object> uploadFile(Long sessionId, Long documentId, MultipartFile file) {
+
+        log.info("파일 업로드 시작: sessionId={}, documentId={}, filename={}",
+                sessionId, documentId, file.getOriginalFilename());
+
+        // 1. 세션 검증
+        LoanSessionVO session = loanSessionMapper.selectById(sessionId);
+        if (session == null) {
+            throw new IllegalArgumentException("존재하지 않는 세션입니다. sessionId: " + sessionId);
+        }
+
+        // 2. 서류 정보 검증
+        DocumentUploadsVO document = documentUploadsMapper.selectById(documentId);
+        if (document == null) {
+            throw new IllegalArgumentException("존재하지 않는 서류입니다. documentId: " + documentId);
+        }
+
+        if (!document.getSessionId().equals(sessionId)) {
+            throw new IllegalArgumentException("해당 세션에 속하지 않는 서류입니다.");
+        }
+
+        // 3. 파일 검증
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 파일이 없습니다.");
+        }
+
+        // 4. 파일 저장 처리
+        try {
+            String originalFilename = file.getOriginalFilename();
+            String storedFilename = generateStoredFilename(originalFilename);
+            String filePath = saveFile(file, storedFilename);
+
+            // 5. 데이터베이스 업데이트
+            documentUploadsMapper.updateFileInfo(
+                    documentId,
+                    originalFilename,
+                    storedFilename,
+                    filePath,
+                    file.getSize(),
+                    file.getContentType(),
+                    "UPLOADED"
+            );
+
+            // 6. 응답 구성
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("documentId", documentId);
+            response.put("documentName", document.getDocumentName());
+            response.put("originalFilename", originalFilename);
+            response.put("fileSize", file.getSize());
+            response.put("uploadStatus", "UPLOADED");
+            response.put("message", "파일 업로드가 완료되었습니다.");
+
+            log.info("파일 업로드 완료: documentId={}, filename={}", documentId, originalFilename);
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("파일 업로드 실패: documentId={}, filename={}", documentId, file.getOriginalFilename(), e);
+            throw new RuntimeException("파일 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 저장용 파일명 생성 (중복 방지)
+     */
+    private String generateStoredFilename(String originalFilename) {
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        return System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+    }
+
+    /**
+     * 파일 저장 (실제 파일 시스템에 저장)
+     */
+    private String saveFile(MultipartFile file, String storedFilename) throws IOException {
+        // 환경변수에서 업로드 경로 읽기
+        String uploadBase = System.getProperty("UPLOAD_BASE_PATH", "/tmp/uploads");
+        String uploadDir = uploadBase + "/documents/";
+
+        File dir = new File(uploadDir);
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        String filePath = uploadDir + storedFilename;
+        File targetFile = new File(filePath);
+        file.transferTo(targetFile);
+
+        return filePath;
+    }
+
+
     /**
      * 파싱된 서류 정보를 DB에 저장
      */

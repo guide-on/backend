@@ -34,5 +34,19 @@ public interface DocumentUploadsMapper {
      */
     void updateMyDataStatus(List<Long> documentIds);
 
+    /**
+     * 서류 ID로 조회
+     */
+    DocumentUploadsVO selectById(Long documentId);
 
+    /**
+     * 파일 업로드 정보 업데이트
+     */
+    void updateFileInfo(@Param("documentId") Long documentId,
+                        @Param("originalFilename") String originalFilename,
+                        @Param("storedFilename") String storedFilename,
+                        @Param("filePath") String filePath,
+                        @Param("fileSize") Long fileSize,
+                        @Param("mimeType") String mimeType,
+                        @Param("uploadStatus") String uploadStatus);
 }

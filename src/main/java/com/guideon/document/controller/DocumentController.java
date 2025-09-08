@@ -131,4 +131,35 @@ public class DocumentController {
             ));
         }
     }
+
+    /**
+     * 파일 직접 업로드
+     */
+    @PostMapping("/upload/{sessionId}")
+    public ResponseEntity<Map<String, Object>> uploadFile(
+            @PathVariable Long sessionId,
+            @RequestPart("documentId") String documentIdStr,
+            @RequestPart("file") MultipartFile file) {
+
+        try {
+            Long documentId = Long.parseLong(documentIdStr);  // String을 Long으로 변환
+            log.info("파일 업로드 요청: sessionId={}, documentId={}", sessionId, documentId);
+
+            Map<String, Object> result = documentService.uploadFile(sessionId, documentId, file);
+            return ResponseEntity.ok(result);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+
+        } catch (Exception e) {
+            log.error("파일 업로드 중 오류 발생", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "파일 업로드 중 오류가 발생했습니다."
+            ));
+        }
+    }
 }

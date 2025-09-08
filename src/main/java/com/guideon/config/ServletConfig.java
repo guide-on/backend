@@ -1,7 +1,10 @@
 package com.guideon.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -17,6 +20,15 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         "com.guideon.funds"
 })
 public class ServletConfig implements WebMvcConfigurer {
+
+    /**
+     * Multipart 파일 업로드 처리를 위한 Resolver
+     */
+    @Bean
+    public MultipartResolver multipartResolver() {
+        StandardServletMultipartResolver resolver = new StandardServletMultipartResolver();
+        return resolver;
+    }
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
