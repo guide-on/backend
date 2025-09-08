@@ -93,4 +93,12 @@ public interface CommunityMapper {
     List<PostListItemResponse> popularPosts(@Param("limit") int limit);
     List<PostListItemResponse> recommendPostsByMember(@Param("memberId") Long memberId,
                                                       @Param("limit") int limit);
+
+    // Hashtag 리스트 조회 메서드 추가
+    List<Hashtag> selectHashtags(@Param("tagType") String tagType,
+                                 @Param("keyword") String keyword,
+                                 @Param("onlyActive") Boolean onlyActive);
+
+    String selectNicknameByMemberId(@Param("memberId") Long memberId);
+
 }

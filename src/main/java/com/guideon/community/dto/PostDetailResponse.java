@@ -11,6 +11,7 @@ import java.util.List;
 public class PostDetailResponse {
     private Long id;
     private Long memberId;
+    private String nickname;
     private PostCategory category;
     private FreeType freeType;
     private String title;
