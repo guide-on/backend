@@ -36,7 +36,7 @@ public class BusinessStatusService {
     }
 
     public BusinessStatusResponse checkStatus(List<String> rawBizNos) {
-        // 1) 정규화 + 중복 제거
+        // 정규화 + 중복 제거
         List<String> cleaned = Optional.ofNullable(rawBizNos).orElse(List.of())
                 .stream()
                 .filter(Objects::nonNull)
@@ -45,7 +45,7 @@ public class BusinessStatusService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        // 2) 유효 값 없으면 빈 응답 반환
+        // 유효 값 없으면 빈 응답 반환
         if (cleaned.isEmpty()) {
             BusinessStatusResponse empty = new BusinessStatusResponse();
             empty.setStatus_code("OK");

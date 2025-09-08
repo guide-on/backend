@@ -36,10 +36,10 @@ public class BizStatusCheckResponse {
                 .build();
     }
 
-    public static BizStatusCheckResponse invalidBno(String raw) {
+    public static BizStatusCheckResponse invalidBno(String raw, String message) {
         return BizStatusCheckResponse.builder()
                 .active(false).error(BizStatusError.INVALID_BNO)
-                .message("사업자등록번호는 숫자 10자리여야 합니다.")
+                .message(message)
                 .bno(raw)
                 .build();
     }

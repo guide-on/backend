@@ -4,6 +4,7 @@ import com.guideon.business.external.nts.dto.BizStatusCheckResponse;
 import com.guideon.business.external.nts.dto.BusinessStatusItem;
 import com.guideon.business.external.nts.dto.BusinessStatusResponse;
 import com.guideon.business.external.nts.service.BusinessStatusService;
+import com.guideon.member.service.BusinessProfileService;
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.List;
 @Api(tags = "사업자 API", description = "사업자 관련 기능 제공")
 public class BusinessStatusController {
     private final BusinessStatusService businessStatusService;
+    private final BusinessProfileService businessProfileService;
 
     @ApiOperation(value = "사업자등록번호 단건 상태 확인", notes = "사업자등록번호(숫자 10자리)를 받아 계속/휴업/폐업/미등록 여부를 반환합니다.")
     @ApiResponses({
@@ -33,7 +35,11 @@ public class BusinessStatusController {
         // 형식 검증 및 정규화
         String clean = businessStatusService.normalize(bno);
         if (clean == null || clean.length() != 10) {
-            return ResponseEntity.badRequest().body(BizStatusCheckResponse.invalidBno(bno));
+            return ResponseEntity.badRequest().body(BizStatusCheckResponse.invalidBno(bno, "사업자등록번호는 숫자 10자리여야 합니다."));
+        }
+
+        if (businessProfileService.existsBizRegNo(clean)) {
+            return ResponseEntity.badRequest().body(BizStatusCheckResponse.invalidBno(clean, "이미 가입된 사업자번호입니다."));
         }
 
         // 단건 조회

@@ -63,7 +63,7 @@ public class MemberServiceImpl implements MemberService {
 
         MemberVO member = registerMember(dto.toVO(passwordEncoder));
 
-        // 3) 부가 정보 저장 (분리된 메서드 호출)
+        // 부가 정보 저장 (분리된 메서드 호출)
         if (dto.getMemberType() == MemberType.SOLE_PROPRIETOR) {
             saveBusinessProfile(member.getMemberId(), dto.getBusiness());
         } else if (dto.getMemberType() == MemberType.GENERAL) {
@@ -82,10 +82,6 @@ public class MemberServiceImpl implements MemberService {
     private void saveBusinessProfile(Long memberId, BusinessProfileDTO businessDTO) {
         if (businessDTO == null) {
             throw new IllegalArgumentException("사업자 정보가 필요합니다.");
-        }
-        // 중복 사업자번호 체크
-        if (businessProfileMapper.existsBizRegNo(businessDTO.getBizRegNo()) > 0) {
-            throw new IllegalArgumentException("이미 가입된 사업자등록번호입니다.");
         }
         BusinessProfileVO business = businessDTO.toVO(memberId);
         businessProfileMapper.insert(business);
