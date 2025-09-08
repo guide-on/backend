@@ -35,7 +35,12 @@ public class AccessPolicy {
             // 리스트
             new AccessRule(HttpMethod.GET, "/api/community/posts", null), // 리스트 조회
             new AccessRule(HttpMethod.GET, "/api/community/posts/search", null), // 검색
-            new AccessRule(HttpMethod.GET, "/api/community/posts/popular", null) // 인기
+            new AccessRule(HttpMethod.GET, "/api/community/posts/popular", null), // 인기
+
+            // PERMIT_ALL 목록에 아래 2줄 추가
+            new AccessRule(HttpMethod.GET, "/api/community/hashtags", null),
+            new AccessRule(HttpMethod.GET, "/api/community/hashtags/all", null)
+
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)

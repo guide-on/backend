@@ -396,4 +396,37 @@
             LIMIT #{limit}
     </select>
 
+    <!-- 해시태그 리스트 조회 -->
+    <select id="selectHashtags" resultType="com.guideon.community.domain.Hashtag">
+        SELECT
+        id,
+        name,
+        tag_type    AS tagType,
+        code,
+        ref_ksic_code AS refKsicCode,
+        is_active   AS isActive,
+        created_at  AS createdAt,
+        updated_at  AS updatedAt
+        FROM hashtag
+        <where>
+            <if test="tagType != null">AND tag_type = #{tagType}</if>
+            <if test="onlyActive != null and onlyActive">AND is_active = 1</if>
+            <if test="keyword != null">AND (name LIKE #{keyword} OR code LIKE #{keyword})</if>
+        </where>
+        <!-- POST_TYPE 먼저, 그 다음 SECTOR, 마지막 GENERIC; 같은 타입 내에는 이름순 -->
+        ORDER BY
+        CASE tag_type
+        WHEN 'POST_TYPE' THEN 0
+        WHEN 'SECTOR'    THEN 1
+        ELSE 2
+        END,
+        name ASC
+    </select>
+
+    <select id="selectNicknameByMemberId" parameterType="long" resultType="string">
+        SELECT nickname FROM member WHERE member_id = #{memberId}
+    </select>
+
+
+
 </mapper>

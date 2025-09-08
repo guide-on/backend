@@ -4,6 +4,10 @@ import com.guideon.community.dto.*;
 
 import java.util.Map;
 
+import com.guideon.community.enums.HashtagType;
+import com.guideon.community.dto.HashtagDto;
+import java.util.List;
+
 public interface CommunityService {
     Long createPost(Long currentMemberId, PostCreateRequest req);
     Map<String, Object> listPosts(PostListRequest req);
@@ -25,4 +29,8 @@ public interface CommunityService {
     // 인기글 & 추천
     Map<String, Object> popular(int size);
     Map<String, Object> recommend(Long currentMemberId, int size);
+
+    // 해시태그 조회
+    List<HashtagDto> listHashtags(HashtagType type, String keyword, boolean onlyActive);
+    Map<String, Object> listHashtagsAll(boolean onlyActive);
 }
