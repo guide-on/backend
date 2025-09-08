@@ -39,7 +39,17 @@ public class AccessPolicy {
             new AccessRule(HttpMethod.GET, "/api/region/sido", null),
 
             // 사업자등록증 ocr 추출 관련
-            new AccessRule(HttpMethod.POST, "/api/ocr/bizreg", null)
+            new AccessRule(HttpMethod.POST, "/api/ocr/bizreg", null),
+
+            // ── 커뮤니티: 비로그인 허용(홈/리스트/검색/인기) ───────────
+            // 리스트
+            new AccessRule(HttpMethod.GET, "/api/community/posts", null), // 리스트 조회
+            new AccessRule(HttpMethod.GET, "/api/community/posts/search", null), // 검색
+            new AccessRule(HttpMethod.GET, "/api/community/posts/popular", null), // 인기
+
+            // PERMIT_ALL 목록에 아래 2줄 추가
+            new AccessRule(HttpMethod.GET, "/api/community/hashtags", null),
+            new AccessRule(HttpMethod.GET, "/api/community/hashtags/all", null)
 
     );
 

@@ -27,7 +27,11 @@ import java.util.List;
         "com.guideon.industry.code.controller",
         "com.guideon.region.controller",
         "com.guideon.business.external.nts.controller",
-        "com.guideon.ocr.controller"
+        "com.guideon.ocr.controller",
+        "com.guideon.document.controller",
+        "com.guideon.community.controller",
+        "com.guideon.common.exception",   // GlobalExceptionHandler
+        "com.guideon.funds"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

@@ -11,6 +11,7 @@
     <typeAliases>
         <package name="com.guideon.security.account.domain"/>
         <package name="com.guideon.member.domain"/>
+        <package name="com.guideon.document.domain"/>
     </typeAliases>
 
     <typeHandlers>
