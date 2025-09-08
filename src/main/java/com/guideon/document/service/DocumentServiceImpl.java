@@ -161,6 +161,101 @@ public class DocumentServiceImpl implements DocumentService {
         return response;
     }
 
+    @Override
+    public Map<String, Object> getDocumentStatus(Long sessionId) {
+
+        log.info("서류 상태 조회 시작: sessionId={}", sessionId);
+
+        // 1. 세션 검증
+        LoanSessionVO session = loanSessionMapper.selectById(sessionId);
+        if (session == null) {
+            throw new IllegalArgumentException("존재하지 않는 세션입니다. sessionId: " + sessionId);
+        }
+
+        // 2. 해당 세션의 모든 서류 조회
+        List<DocumentUploadsVO> documents = documentUploadsMapper.selectBySessionId(sessionId);
+
+        // 3. 그룹별로 서류 분류
+        Map<String, List<DocumentUploadsVO>> groupedDocuments = documents.stream()
+                .collect(Collectors.groupingBy(DocumentUploadsVO::getDocumentGroup));
+
+        // 4. 그룹별 상태 계산
+        List<Map<String, Object>> groupStatus = new ArrayList<>();
+        int totalRequirements = 0;
+        int completedRequirements = 0;
+
+        for (Map.Entry<String, List<DocumentUploadsVO>> entry : groupedDocuments.entrySet()) {
+            String groupKey = entry.getKey();
+            List<DocumentUploadsVO> groupDocs = entry.getValue();
+
+            // 그룹 정보 (첫 번째 서류에서 추출)
+            DocumentUploadsVO firstDoc = groupDocs.get(0);
+            Integer minSelect = firstDoc.getGroupMinSelect();
+
+            // 실제 제출된 서류 수 계산
+            int actualSubmittedCount = (int) groupDocs.stream()
+                    .filter(doc -> "UPLOADED".equals(doc.getUploadStatus()) || "VALIDATED".equals(doc.getUploadStatus()))
+                    .count();
+
+            // 표시용 제출 수 (택1 그룹은 minSelect로 제한)
+            int displaySubmittedCount = Math.min(actualSubmittedCount, minSelect);
+
+            // 그룹 완료 여부
+            boolean isCompleted = actualSubmittedCount >= minSelect;
+
+            // 진행률 계산을 위한 카운트
+            totalRequirements += minSelect;
+            if (isCompleted) {
+                completedRequirements += minSelect;
+            } else {
+                completedRequirements += displaySubmittedCount;
+            }
+
+            // 서류별 상세 정보
+            List<Map<String, Object>> documentDetails = groupDocs.stream()
+                    .map(doc -> {
+                        Map<String, Object> detail = new LinkedHashMap<>();
+                        detail.put("id", doc.getId());
+                        detail.put("documentName", doc.getDocumentName());
+                        detail.put("uploadStatus", doc.getUploadStatus());
+                        detail.put("isSelected", doc.getIsSelected());
+                        detail.put("isMydataRetrieved", doc.getIsMydataRetrieved());
+                        detail.put("isMydataAvailable", doc.getIsMydataAvailable());
+                        return detail;
+                    })
+                    .toList();
+
+            // 그룹 상태 정보
+            Map<String, Object> groupInfo = new LinkedHashMap<>();
+            groupInfo.put("groupKey", groupKey);
+            groupInfo.put("minSelect", minSelect);
+            groupInfo.put("submitted", displaySubmittedCount);  // 조정된 제출 수
+            groupInfo.put("isCompleted", isCompleted);
+            groupInfo.put("documents", documentDetails);
+
+            groupStatus.add(groupInfo);
+        }
+
+        // 5. 전체 진행률 계산
+        double progressPercentage = totalRequirements > 0 ?
+                Math.round((double) completedRequirements / totalRequirements * 100.0 * 100.0) / 100.0 : 0.0;
+
+        // 6. 응답 구성
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("sessionId", sessionId);
+        response.put("totalRequirements", totalRequirements);
+        response.put("completedRequirements", completedRequirements);
+        response.put("progressPercentage", progressPercentage);
+        response.put("groupStatus", groupStatus);
+
+        // 7. loan_sessions 테이블 업데이트 추가
+        loanSessionMapper.updateSessionProgress(sessionId, totalRequirements, completedRequirements, progressPercentage);
+
+        log.info("서류 상태 조회 완료: sessionId={}, 진행률={}%", sessionId, progressPercentage);
+
+        return response;
+    }
+
     /**
      * 파싱된 서류 정보를 DB에 저장
      */

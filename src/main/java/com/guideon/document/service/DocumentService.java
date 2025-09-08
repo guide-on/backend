@@ -29,4 +29,12 @@ public interface DocumentService {
      * @return 업데이트된 서류 정보
      */
     Map<String, Object> syncWithMyData(Long sessionId, MyDataSyncRequest request);
+
+    /**
+     * 서류 상태 조회
+     * @param sessionId 세션 아이디
+     * @return 서류 제출 상태
+     */
+    Map<String, Object> getDocumentStatus(Long sessionId);
+
 }

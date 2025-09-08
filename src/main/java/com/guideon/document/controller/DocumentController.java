@@ -100,4 +100,35 @@ public class DocumentController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * 서류 상태 조회
+     */
+    @GetMapping("/status/{sessionId}")
+    public ResponseEntity<Map<String, Object>> getDocumentStatus(@PathVariable Long sessionId) {
+
+        try {
+            log.info("서류 상태 조회 요청: sessionId={}", sessionId);
+
+            Map<String, Object> result = documentService.getDocumentStatus(sessionId);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.putAll(result);
+
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+
+        } catch (Exception e) {
+            log.error("서류 상태 조회 중 오류 발생: sessionId={}", sessionId, e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "서버 오류가 발생했습니다."
+            ));
+        }
+    }
 }

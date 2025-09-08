@@ -43,4 +43,13 @@
         WHERE id = #{sessionId}
     </select>
 
+    <!-- 세션 진행 상태 업데이트 -->
+    <update id="updateSessionProgress">
+        UPDATE loan_sessions
+        SET required_documents = #{requiredDocuments},
+            submitted_documents = #{submittedDocuments},
+            progress_percentage = #{progressPercentage},
+            updated_at = NOW()
+        WHERE id = #{sessionId}
+    </update>
 </mapper>
