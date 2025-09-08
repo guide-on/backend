@@ -108,6 +108,10 @@ dependencies {
     // Google SMTP api 관련
     implementation 'javax.mail:mail:1.4.7'
 
+    // ====== Google OCR 관련 의존성 ======
+    implementation platform("com.google.cloud:libraries-bom:26.49.0")
+    implementation "com.google.cloud:google-cloud-vision"
+
     // ===== 테스트 관련 의존성 =====
     testImplementation "org.springframework:spring-test:${springVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"

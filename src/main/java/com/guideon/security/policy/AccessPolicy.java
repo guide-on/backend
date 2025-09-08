@@ -36,7 +36,11 @@ public class AccessPolicy {
             new AccessRule(HttpMethod.GET, "/api/industry/code/ksic5", null),
 
             // 지역 관련
-            new AccessRule(HttpMethod.GET, "/api/region/sido", null)
+            new AccessRule(HttpMethod.GET, "/api/region/sido", null),
+
+            // 사업자등록증 ocr 추출 관련
+            new AccessRule(HttpMethod.POST, "/api/ocr/bizreg", null)
+
     );
 
     // 인증 필요 (명시적으로 지정 필요 시 사용)

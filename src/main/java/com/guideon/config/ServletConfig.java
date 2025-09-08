@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -24,7 +26,8 @@ import java.util.List;
         "com.guideon.industry.catalog.controller",
         "com.guideon.industry.code.controller",
         "com.guideon.region.controller",
-        "com.guideon.business.external.nts.controller"
+        "com.guideon.business.external.nts.controller",
+        "com.guideon.ocr.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
@@ -63,5 +66,10 @@ public class ServletConfig implements WebMvcConfigurer {
 
         // 가장 앞에 두어 우선 적용되게
         converters.add(0, json);
+    }
+
+    @Bean
+    public StandardServletMultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 }

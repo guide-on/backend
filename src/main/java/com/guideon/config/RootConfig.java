@@ -33,7 +33,8 @@ import javax.sql.DataSource;
         "com.guideon.industry.code.service",
         "com.guideon.region.service",
         "com.guideon.business.external.nts.service",
-        "com.guideon.business.external.nts.client"
+        "com.guideon.business.external.nts.client",
+        "com.guideon.ocr.service"
 })
 @EnableTransactionManagement
 public class RootConfig {
