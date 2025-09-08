@@ -1,11 +1,13 @@
 package com.guideon.document.controller;
 
+import com.guideon.document.dto.MyDataSyncRequest;
 import com.guideon.document.dto.SessionRequest;
 import com.guideon.document.service.DocumentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 
@@ -85,4 +87,17 @@ public class DocumentController {
             ));
         }
     }
+
+    /**
+     * 마이데이터 연동
+     */
+    @PostMapping("/mydata-sync/{sessionId}")
+    public ResponseEntity<Map<String, Object>> syncWithMyData(
+            @PathVariable Long sessionId,
+            @RequestBody MyDataSyncRequest request) {
+
+        Map<String, Object> result = documentService.syncWithMyData(sessionId, request);
+        return ResponseEntity.ok(result);
+    }
+
 }
