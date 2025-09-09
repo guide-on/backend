@@ -84,7 +84,7 @@ public class AuthController {
             throw new IllegalStateException("Refresh Token 정보가 일치하지 않습니다");
         }
 
-        String email = memberService.get(memberId, null).getEmail();
+        String email = memberService.getEmailById(memberId);
         if (!StringUtils.hasText(email)) {
             throw new IllegalStateException("존재하지 않는 사용자입니다");
         }

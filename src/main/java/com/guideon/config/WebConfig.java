@@ -1,20 +1,19 @@
 package com.guideon.config;
 
+import com.guideon.ocr.config.VisionConfig;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvBuilder;
-
 import javax.servlet.*;
-
 import com.guideon.security.config.SecurityConfig;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
 
-    // 업로드 설정 상수
-    private static final long MAX_FILE_SIZE = 1024 * 1024 * 10L;      // 10MB (개별 파일)
-    private static final long MAX_REQUEST_SIZE = 1024 * 1024 * 15L;   // 15MB (전체 요청)
-    private static final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 2;   // 2MB (메모리 임계값)
+    // 파일 업로드 설정 상수
+    private static final long MAX_FILE_SIZE = 1024 * 1024 * 10L;      // 10MB
+    private static final long MAX_REQUEST_SIZE = 1024 * 1024 * 20L;   // 20MB
+    private static final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 5;   // 5MB
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
@@ -47,8 +46,7 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        // 순서: EnvConfig -> RootConfig -> SecurityConfig -> RedisConfig
-        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, JacksonConfig.class };
+        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class, VisionConfig.class };
     }
 
     @Override
@@ -81,12 +79,11 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
         // 디버그 로그 추가
         System.out.println("[UPLOAD] Using location: " + UPLOAD_LOCATION);
 
-        MultipartConfigElement multipartConfig = new MultipartConfigElement(
+        registration.setMultipartConfig(new MultipartConfigElement(
                 UPLOAD_LOCATION,        // 업로드 파일 임시 저장 디렉토리
-                MAX_FILE_SIZE,          // 개별 파일 최대 크기 (10MB)
-                MAX_REQUEST_SIZE,       // 전체 요청 최대 크기 (15MB)
-                FILE_SIZE_THRESHOLD     // 메모리 임계값 (2MB 이하는 메모리에서 처리)
-        );
-        registration.setMultipartConfig(multipartConfig);
+                MAX_FILE_SIZE,          // 업로드 가능한 파일 하나의 최대 크기
+                MAX_REQUEST_SIZE,       // 업로드 가능한 전체 최대 크기(여러 파일 업로드)
+                FILE_SIZE_THRESHOLD     // 메모리 파일의 최대 크기(임계값)
+        ));
     }
 }
