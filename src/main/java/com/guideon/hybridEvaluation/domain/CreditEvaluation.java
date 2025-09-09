@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 @Data
 public class CreditEvaluation {
     // 기본 정보
-    private String userId;
+    private String memberId;  // VARCHAR(50) -> member_id 컬럼
     private Timestamp evaluationDate;
     
     // 상환이력 (28.4%) - 7개 컬럼
