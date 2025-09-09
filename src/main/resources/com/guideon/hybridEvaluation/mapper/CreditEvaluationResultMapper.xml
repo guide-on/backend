@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.guideon.hybridEvaluation.mapper.CreditEvaluationResultMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="CreditEvaluationResultMap" type="com.guideon.hybridEvaluation.domain.CreditEvaluationResult">
+        <id property="userId" column="user_id"/>
+        <result property="totalScore" column="total_score"/>
+        <result property="repaymentHistoryScore" column="repayment_history_score"/>
+        <result property="debtLevelScore" column="debt_level_score"/>
+        <result property="creditPeriodScore" column="credit_period_score"/>
+        <result property="creditPatternScore" column="credit_pattern_score"/>
+        <result property="nonFinancialScore" column="non_financial_score"/>
+        <result property="scoreCalculatedDttm" column="score_calculated_dttm"/>
+    </resultMap>
+
+    <!-- SQL 조각 정의 -->
+    <sql id="creditEvaluationResultColumns">
+        user_id, total_score, repayment_history_score, debt_level_score,
+        credit_period_score, credit_pattern_score, non_financial_score, score_calculated_dttm
+    </sql>
+
+    <!-- 신용평가 결과 생성 -->
+    <insert id="insertCreditEvaluationResult" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluationResult">
+        INSERT INTO credit_evaluation_result (
+            user_id, total_score, repayment_history_score, debt_level_score,
+            credit_period_score, credit_pattern_score, non_financial_score, score_calculated_dttm
+        ) VALUES (
+            #{userId}, #{totalScore}, #{repaymentHistoryScore}, #{debtLevelScore},
+            #{creditPeriodScore}, #{creditPatternScore}, #{nonFinancialScore}, NOW()
+        )
+    </insert>
+
+    <!-- 신용평가 결과 수정 -->
+    <update id="updateCreditEvaluationResult" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluationResult">
+        UPDATE credit_evaluation_result
+        SET 
+            total_score = #{totalScore},
+            repayment_history_score = #{repaymentHistoryScore},
+            debt_level_score = #{debtLevelScore},
+            credit_period_score = #{creditPeriodScore},
+            credit_pattern_score = #{creditPatternScore},
+            non_financial_score = #{nonFinancialScore},
+            score_calculated_dttm = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 특정 사용자의 신용평가 결과 조회 -->
+    <select id="selectCreditEvaluationResult" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationResultColumns"/>
+        FROM credit_evaluation_result
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 모든 신용평가 결과 목록 조회 -->
+    <select id="selectCreditEvaluationResultList" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationResultColumns"/>
+        FROM credit_evaluation_result
+        ORDER BY total_score DESC, score_calculated_dttm DESC
+    </select>
+
+    <!-- 점수 범위별 신용평가 결과 조회 -->
+    <select id="selectCreditEvaluationResultByScoreRange" resultMap="CreditEvaluationResultMap">
+        SELECT <include refid="creditEvaluationResultColumns"/>
+        FROM credit_evaluation_result
+        WHERE total_score BETWEEN #{minScore} AND #{maxScore}
+        ORDER BY total_score DESC, score_calculated_dttm DESC
+    </select>
+
+    <!-- 신용평가 결과 삭제 -->
+    <delete id="deleteCreditEvaluationResult">
+        DELETE FROM credit_evaluation_result
+        WHERE user_id = #{userId}
+    </delete>
+
+    <!-- 신용평가 결과 존재 여부 확인 -->
+    <select id="existsCreditEvaluationResult" resultType="boolean">
+        SELECT COUNT(*) &gt; 0
+        FROM credit_evaluation_result
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 전체 신용평가 결과 개수 조회 -->
+    <select id="countCreditEvaluationResults" resultType="int">
+        SELECT COUNT(*)
+        FROM credit_evaluation_result
+    </select>
+
+</mapper>

@@ -31,6 +31,7 @@ import java.util.List;
         "com.guideon.ocr.controller",
         "com.guideon.document.controller",
         "com.guideon.community.controller",
+        "com.guideon.hybridEvaluation.controller",
         "com.guideon.common.exception",   // GlobalExceptionHandler
         "com.guideon.funds"
 })

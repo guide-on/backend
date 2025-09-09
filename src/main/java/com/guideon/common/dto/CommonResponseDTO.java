@@ -10,6 +10,10 @@ public class CommonResponseDTO<T> {
     private String message;
     private T data;
 
+    public boolean isSuccess() {
+        return status >= 200 && status < 300;
+    }
+
     public static <T> CommonResponseDTO<T> success(String message, T data) {
         return new CommonResponseDTO<>(200, message, data);
     }

@@ -25,7 +25,8 @@ import javax.sql.DataSource;
         "com.guideon.industry.code.mapper",
         "com.guideon.document.mapper",
         "com.guideon.community.mapper",
-        "com.guideon.funds.mapper"
+        "com.guideon.funds.mapper",
+        "com.guideon.hybridEvaluation.mapper"
 })
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
@@ -39,6 +40,7 @@ import javax.sql.DataSource;
         "com.guideon.business.external.nts.client",
         "com.guideon.ocr.service",
         "com.guideon.document.service",
+        "com.guideon.hybridEvaluation",
         "com.guideon.community",      // 서비스/컨트롤러/예외
         "com.guideon.common",          // 공통 응답/예외/스토리지
         "com.guideon.funds"
