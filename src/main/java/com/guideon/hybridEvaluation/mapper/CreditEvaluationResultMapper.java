@@ -25,10 +25,10 @@ public interface CreditEvaluationResultMapper {
     
     /**
      * 특정 사용자의 신용평가 결과 조회
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return 신용평가 결과
      */
-    CreditEvaluationResult selectCreditEvaluationResult(@Param("userId") Long userId);
+    CreditEvaluationResult selectCreditEvaluationResult(@Param("memberId") Long memberId);
     
     /**
      * 모든 신용평가 결과 목록 조회
@@ -48,17 +48,17 @@ public interface CreditEvaluationResultMapper {
     
     /**
      * 신용평가 결과 삭제
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return 삭제된 행 수
      */
-    int deleteCreditEvaluationResult(@Param("userId") Long userId);
+    int deleteCreditEvaluationResult(@Param("memberId") Long memberId);
     
     /**
      * 신용평가 결과 존재 여부 확인
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return 존재 여부
      */
-    boolean existsCreditEvaluationResult(@Param("userId") Long userId);
+    boolean existsCreditEvaluationResult(@Param("memberId") Long memberId);
     
     /**
      * 전체 신용평가 결과 개수 조회

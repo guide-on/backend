@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 
 @Data
 public class StoreSummary {
-    private Long storeId;
+    private Long memberId;  // member_id BIGINT -> storeId 대신 memberId 사용
     private Long ownerId;
     private String businessRegistrationNo;
     private String industryCode;
