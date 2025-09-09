@@ -3,21 +3,17 @@ package com.guideon.config;
 import com.guideon.ocr.config.VisionConfig;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.github.cdimascio.dotenv.DotenvBuilder;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import javax.servlet.*;
 import com.guideon.security.config.SecurityConfig;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
-import javax.servlet.Filter;
-import javax.servlet.MultipartConfigElement;
-import javax.servlet.ServletRegistration;
 
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
 
     // 파일 업로드 설정 상수
-    final long MAX_FILE_SIZE = 1024 * 1024 * 10L;      // 10MB
-    final long MAX_REQUEST_SIZE = 1024 * 1024 * 20L;   // 20MB
-    final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 5;   // 5MB
+    private static final long MAX_FILE_SIZE = 1024 * 1024 * 10L;      // 10MB
+    private static final long MAX_REQUEST_SIZE = 1024 * 1024 * 20L;   // 20MB
+    private static final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 5;   // 5MB
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
@@ -73,12 +69,21 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
     }
 
     @Override
-    protected void customizeRegistration(ServletRegistration.Dynamic reg) {
-        reg.setMultipartConfig(new MultipartConfigElement(
-                null,        // 업로드 처리 디렉토리 경로 (null=컨테이너 기본)
-                MAX_FILE_SIZE,      // 업로드 가능한 파일 하나의 최대 크기
-                MAX_REQUEST_SIZE,   // 업로드 가능한 전체 최대 크기(여러 파일 업로드)
-                FILE_SIZE_THRESHOLD // 메모리 파일의 최대 크기(임계값)
+    protected void customizeRegistration(ServletRegistration.Dynamic registration) {
+        registration.setInitParameter("throwExceptionIfNoHandlerFound", "true");
+
+        registration.setInitParameter("allowCasualMultipartParsing", "true");
+
+        final String UPLOAD_LOCATION = System.getProperty("UPLOAD_BASE_PATH", "/tmp/uploads");
+
+        // 디버그 로그 추가
+        System.out.println("[UPLOAD] Using location: " + UPLOAD_LOCATION);
+
+        registration.setMultipartConfig(new MultipartConfigElement(
+                UPLOAD_LOCATION,        // 업로드 파일 임시 저장 디렉토리
+                MAX_FILE_SIZE,          // 업로드 가능한 파일 하나의 최대 크기
+                MAX_REQUEST_SIZE,       // 업로드 가능한 전체 최대 크기(여러 파일 업로드)
+                FILE_SIZE_THRESHOLD     // 메모리 파일의 최대 크기(임계값)
         ));
     }
 }
