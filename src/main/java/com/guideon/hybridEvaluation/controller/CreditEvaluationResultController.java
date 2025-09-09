@@ -30,7 +30,7 @@ public class CreditEvaluationResultController {
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResultResponse>> createCreditEvaluationResult(
             @RequestBody CreditEvaluationResultCreateRequest request) {
         
-        log.info("신용평가 결과 생성 요청: userId={}", request.getUserId());
+        log.info("신용평가 결과 생성 요청: memberId={}", request.getMemberId());
         
         CommonResponseDTO<CreditEvaluationResultResponse> response = 
             creditEvaluationResultService.createCreditEvaluationResult(request);
@@ -43,7 +43,7 @@ public class CreditEvaluationResultController {
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResultResponse>> updateCreditEvaluationResult(
             @RequestBody CreditEvaluationResultUpdateRequest request) {
         
-        log.info("신용평가 결과 수정 요청: userId={}", request.getUserId());
+        log.info("신용평가 결과 수정 요청: memberId={}", request.getMemberId());
         
         CommonResponseDTO<CreditEvaluationResultResponse> response = 
             creditEvaluationResultService.updateCreditEvaluationResult(request);
@@ -51,16 +51,16 @@ public class CreditEvaluationResultController {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/{userId}")
+    @GetMapping("/{memberId}")
     @ApiOperation(value = "특정 사용자 신용평가 결과 조회", notes = "특정 사용자의 신용평가 결과를 조회합니다.")
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResultResponse>> getCreditEvaluationResult(
-            @ApiParam(value = "사용자 ID", required = true, example = "1001") 
-            @PathVariable Long userId) {
+            @ApiParam(value = "사용자 ID (member_id)", required = true, example = "1001") 
+            @PathVariable Long memberId) {
         
-        log.info("신용평가 결과 조회 요청: userId={}", userId);
+        log.info("신용평가 결과 조회 요청: memberId={}", memberId);
         
         CommonResponseDTO<CreditEvaluationResultResponse> response = 
-            creditEvaluationResultService.getCreditEvaluationResult(userId);
+            creditEvaluationResultService.getCreditEvaluationResult(memberId);
         
         return ResponseEntity.ok(response);
     }
@@ -93,16 +93,16 @@ public class CreditEvaluationResultController {
         return ResponseEntity.ok(response);
     }
     
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/{memberId}")
     @ApiOperation(value = "신용평가 결과 삭제", notes = "특정 사용자의 신용평가 결과를 삭제합니다.")
     public ResponseEntity<CommonResponseDTO<Void>> deleteCreditEvaluationResult(
-            @ApiParam(value = "사용자 ID", required = true, example = "1001") 
-            @PathVariable Long userId) {
+            @ApiParam(value = "사용자 ID (member_id)", required = true, example = "1001") 
+            @PathVariable Long memberId) {
         
-        log.info("신용평가 결과 삭제 요청: userId={}", userId);
+        log.info("신용평가 결과 삭제 요청: memberId={}", memberId);
         
         CommonResponseDTO<Void> response = 
-            creditEvaluationResultService.deleteCreditEvaluationResult(userId);
+            creditEvaluationResultService.deleteCreditEvaluationResult(memberId);
         
         return ResponseEntity.ok(response);
     }

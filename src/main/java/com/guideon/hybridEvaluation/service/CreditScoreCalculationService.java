@@ -29,7 +29,7 @@ public class CreditScoreCalculationService {
      * @return 계산된 신용평가 결과
      */
     public CreditEvaluationResult calculateCreditScore(CreditEvaluation evaluation) {
-        log.info("신용점수 계산 시작: userId={}", evaluation.getUserId());
+        log.info("신용점수 계산 시작: memberId={}", evaluation.getMemberId());
         
         // 각 영역별 점수 계산
         int repaymentScore = calculateRepaymentHistoryScore(evaluation);
@@ -46,11 +46,11 @@ public class CreditScoreCalculationService {
         totalScore = Math.max(MIN_TOTAL_SCORE, Math.min(MAX_TOTAL_SCORE, totalScore));
         
         log.info("신용점수 계산 완료: userId={}, totalScore={}, repayment={}, debt={}, period={}, pattern={}, nonFinancial={}", 
-                evaluation.getUserId(), totalScore, repaymentScore, debtLevelScore, 
+                evaluation.getMemberId(), totalScore, repaymentScore, debtLevelScore, 
                 creditPeriodScore, creditPatternScore, nonFinancialScore);
         
         return CreditEvaluationResult.builder()
-                .userId(Long.valueOf(evaluation.getUserId()))
+                .memberId(Long.valueOf(evaluation.getMemberId()))
                 .totalScore(totalScore)
                 .repaymentHistoryScore(repaymentScore)
                 .debtLevelScore(debtLevelScore)

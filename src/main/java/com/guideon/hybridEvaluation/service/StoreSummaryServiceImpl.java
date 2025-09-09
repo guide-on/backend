@@ -6,6 +6,7 @@ import com.guideon.common.exception.NotFoundException;
 import com.guideon.hybridEvaluation.domain.StoreSummary;
 import com.guideon.hybridEvaluation.dto.*;
 import com.guideon.hybridEvaluation.mapper.StoreSummaryMapper;
+import com.guideon.security.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -22,11 +23,18 @@ import java.util.stream.Collectors;
 public class StoreSummaryServiceImpl implements StoreSummaryService {
     
     private final StoreSummaryMapper storeSummaryMapper;
+    private final LoginUserProvider loginUserProvider;
     
     @Override
     @Transactional
     public CommonResponseDTO<StoreSummaryResponse> createStoreSummary(StoreSummaryCreateRequest request) {
         try {
+            // 로그인한 사용자의 memberId 가져오기 및 검증
+            Long loginMemberId = loginUserProvider.getLoginMemberId();
+            if (loginMemberId == null) {
+                throw new BadRequestException("로그인이 필요합니다.");
+            }
+            
             validateCreateRequest(request);
             
             StoreSummary storeSummary = new StoreSummary();
@@ -39,7 +47,7 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             
             if (result > 0) {
                 StoreSummary savedData = storeSummaryMapper.selectStoreSummary(
-                    storeSummary.getStoreId(), 
+                    storeSummary.getMemberId(),
                     storeSummary.getSummaryYearMonth()
                 );
                 
@@ -60,6 +68,12 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
     @Transactional
     public CommonResponseDTO<StoreSummaryResponse> updateStoreSummary(StoreSummaryUpdateRequest request) {
         try {
+            // 로그인한 사용자의 memberId 가져오기 및 검증
+            Long loginMemberId = loginUserProvider.getLoginMemberId();
+            if (loginMemberId == null) {
+                throw new BadRequestException("로그인이 필요합니다.");
+            }
+            
             validateUpdateRequest(request);
             
             boolean exists = storeSummaryMapper.existsStoreSummary(
@@ -80,7 +94,7 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             
             if (result > 0) {
                 StoreSummary updatedData = storeSummaryMapper.selectStoreSummary(
-                    storeSummary.getStoreId(), 
+                    storeSummary.getMemberId(),
                     storeSummary.getSummaryYearMonth()
                 );
                 
