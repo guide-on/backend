@@ -6,7 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum MemberType {
-    INDIVIDUAL("INDIVIDUAL"),
+    GENERAL("GENERAL"),
     SOLE_PROPRIETOR("SOLE_PROPRIETOR");
 
     private final String code;

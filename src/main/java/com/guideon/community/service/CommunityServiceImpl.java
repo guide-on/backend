@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.guideon.community.dto.HashtagDto;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -155,12 +157,13 @@ public class CommunityServiceImpl implements CommunityService {
         PostDetailResponse dto = new PostDetailResponse();
         dto.setId(p.getId());
         dto.setMemberId(p.getMemberId());
+        dto.setNickname(communityMapper.selectNicknameByMemberId(p.getMemberId()));
         dto.setCategory(p.getCategory());
         dto.setFreeType(p.getFreeType());
         dto.setTitle(p.getTitle());
         dto.setContent(p.getContent());
         dto.setThumbnailUrl(p.getThumbnailUrl());
-        dto.setViewCount(p.getViewCount() + 1);
+        dto.setViewCount(p.getViewCount());
         dto.setLikeCount(p.getLikeCount());
         dto.setBookmarkCount(p.getBookmarkCount());
         dto.setCommentCount(p.getCommentCount());
@@ -183,6 +186,7 @@ public class CommunityServiceImpl implements CommunityService {
             cr.setDepth(c.getDepth());
             cr.setCreatedAt(c.getCreatedAt());
             cr.setUpdatedAt(c.getUpdatedAt());
+            cr.setNickname(communityMapper.selectNicknameByMemberId(c.getMemberId()));
             all.put(cr.getId(), cr);
         }
         // 부모-자식 연결
@@ -403,5 +407,36 @@ public class CommunityServiceImpl implements CommunityService {
             rows.forEach(it -> it.setHashtags(tagMap.getOrDefault(it.getId(), Collections.emptyList())));
         }
         return Map.of("items", rows, "size", size);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<HashtagDto> listHashtags(HashtagType type, String keyword, boolean onlyActive) {
+        String like = (keyword == null || keyword.isBlank()) ? null : "%" + keyword.trim() + "%";
+        List<Hashtag> rows = communityMapper.selectHashtags(
+                type == null ? null : type.name(), like, onlyActive ? Boolean.TRUE : Boolean.FALSE
+        );
+        return rows.stream()
+                .map(h -> new HashtagDto(
+                        h.getId(),
+                        h.getName(),
+                        h.getTagType(),
+                        h.getCode()
+                ))
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Object> listHashtagsAll(boolean onlyActive) {
+        java.util.List<HashtagDto> sector = listHashtags(HashtagType.SECTOR, null, onlyActive);
+        java.util.List<HashtagDto> postType = listHashtags(HashtagType.POST_TYPE, null, onlyActive);
+        java.util.List<HashtagDto> generic = listHashtags(HashtagType.GENERIC, null, onlyActive);
+        return java.util.Map.of(
+                "sector", sector,
+                "postTypes", postType,
+                "generic", generic
+        );
     }
 }

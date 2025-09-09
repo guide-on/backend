@@ -20,7 +20,7 @@ public class UserInfoDTO {
     @ApiModelProperty(value = "사용자 이름", example = "홍길동")
     private String name;
 
-    @ApiModelProperty(value = "사용자 유형", example = "INDIVIDUAL")
+    @ApiModelProperty(value = "사용자 유형", example = "GENERAL")
     private MemberType memberType;
 
     @ApiModelProperty(value = "이메일", example = "user@example.com")

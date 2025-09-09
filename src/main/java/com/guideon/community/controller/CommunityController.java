@@ -230,4 +230,36 @@ public class CommunityController {
         Long memberId = currentMemberIdOrThrow();
         return CommonResponseDTO.ok(communityService.recommend(memberId, size));
     }
+
+
+    // -----------------------------
+    // 해시태그 조회
+    // -----------------------------
+    @GetMapping("/hashtags")
+    @ApiOperation(value = "해시태그 조회",
+            notes = "type=SECTOR|POST_TYPE|GENERIC 중 하나(생략 시 전체). q(부분검색), onlyActive=true 기본값.")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "SECTOR | POST_TYPE | GENERIC", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "q", value = "부분검색 키워드", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "onlyActive", value = "활성 태그만", defaultValue = "true", paramType = "query", dataType = "boolean")
+    })
+    public CommonResponseDTO<java.util.List<com.guideon.community.dto.HashtagDto>> hashtags(
+            @RequestParam(required = false) com.guideon.community.enums.HashtagType type,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false, defaultValue = "true") boolean onlyActive
+    ) {
+        return com.guideon.common.dto.CommonResponseDTO.ok(
+                communityService.listHashtags(type, q, onlyActive)
+        );
+    }
+
+    @GetMapping("/hashtags/all")
+    @ApiOperation(value = "해시태그 전체 묶음 조회",
+            notes = "SECTOR / POST_TYPE / GENERIC 세 묶음을 한 번에 반환")
+    public CommonResponseDTO<java.util.Map<String, Object>> hashtagsAll(
+            @RequestParam(required = false, defaultValue = "true") boolean onlyActive
+    ) {
+        return CommonResponseDTO.ok(communityService.listHashtagsAll(onlyActive));
+    }
+
 }

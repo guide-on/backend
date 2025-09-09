@@ -34,4 +34,33 @@
         WHERE m.member_id = #{id} OR m.email = #{email}
             LIMIT 1
     </select>
+
+    <select id="existsEmail" parameterType="string" resultType="int">
+        SELECT COUNT(1) FROM member WHERE email = #{email}
+    </select>
+
+    <select id="existsPhone" parameterType="string" resultType="int">
+        SELECT COUNT(1) FROM member WHERE phone = #{phone}
+    </select>
+
+    <select id="findPhoneByEmail" resultType="java.lang.String">
+        SELECT phone FROM member WHERE email = #{email}
+    </select>
+
+    <select id="findEmailById" resultType="java.lang.String">
+        SELECT email FROM member WHERE member_id = #{id}
+    </select>
+
+    <insert id="insert" parameterType="MemberVO">
+        INSERT INTO member (member_type, email, password, name, gender, birth, phone, residence_sgg_code)
+        VALUES (#{memberType}, #{email}, #{password}, #{name}, #{gender}, #{birth}, #{phone}, #{residenceSggCode})
+        <selectKey resultType="Long" keyProperty="memberId" keyColumn="member_id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+    </insert>
+    <!-- 권한 정보 저장 -->
+    <insert id="insertAuth">
+        INSERT INTO member_auth(member_id, auth)
+        VALUES(#{memberId}, #{auth})
+    </insert>
 </mapper>

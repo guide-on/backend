@@ -16,5 +16,6 @@ public class CommentResponse {
     private Integer depth;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private String nickname;
     private List<CommentResponse> children = new ArrayList<>();
 }

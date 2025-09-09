@@ -10,7 +10,6 @@ build/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
-.nul
 *.iws
 *.iml
 *.ipr
@@ -48,4 +47,3 @@ bin/
 
 # 민감 정보 보호
 src/main/resources/application.properties
-nul
