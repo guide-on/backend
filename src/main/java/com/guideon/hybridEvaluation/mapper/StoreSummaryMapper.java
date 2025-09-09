@@ -20,23 +20,23 @@ public interface StoreSummaryMapper {
     int updateStoreSummary(StoreSummary storeSummary);
     
     /**
-     * 특정 매장의 특정 년월 데이터 조회
+     * 특정 회원의 특정 년월 데이터 조회
      */
     StoreSummary selectStoreSummary(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("summaryYearMonth") String summaryYearMonth
     );
     
     /**
-     * 특정 매장의 최신 요약 데이터 조회
+     * 특정 회원의 최신 요약 데이터 조회
      */
-    StoreSummary selectLatestStoreSummary(@Param("storeId") Long storeId);
+    StoreSummary selectLatestStoreSummary(@Param("memberId") Long memberId);
     
     /**
-     * 매장 요약 데이터 목록 조회
+     * 회원 요약 데이터 목록 조회
      */
     List<StoreSummary> selectStoreSummaryList(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("ownerId") Long ownerId,
             @Param("businessRegistrationNo") String businessRegistrationNo,
             @Param("summaryYearMonth") String summaryYearMonth,
@@ -45,47 +45,47 @@ public interface StoreSummaryMapper {
     );
     
     /**
-     * 매장 요약 데이터 총 개수 조회
+     * 회원 요약 데이터 총 개수 조회
      */
     int countStoreSummaryList(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("ownerId") Long ownerId,
             @Param("businessRegistrationNo") String businessRegistrationNo,
             @Param("summaryYearMonth") String summaryYearMonth
     );
     
     /**
-     * 특정 매장의 요약 이력 조회
+     * 특정 회원의 요약 이력 조회
      */
     List<StoreSummary> selectStoreSummaryHistory(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("limit") int limit,
             @Param("offset") int offset
     );
     
     /**
-     * 특정 매장의 요약 이력 개수 조회
+     * 특정 회원의 요약 이력 개수 조회
      */
-    int countStoreSummaryHistory(@Param("storeId") Long storeId);
+    int countStoreSummaryHistory(@Param("memberId") Long memberId);
     
     /**
-     * 매장 요약 데이터 삭제
+     * 회원 요약 데이터 삭제
      */
     int deleteStoreSummary(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("summaryYearMonth") String summaryYearMonth
     );
     
     /**
-     * 특정 매장의 모든 요약 데이터 삭제
+     * 특정 회원의 모든 요약 데이터 삭제
      */
-    int deleteAllStoreSummaryByStoreId(@Param("storeId") Long storeId);
+    int deleteAllStoreSummaryByMemberId(@Param("memberId") Long memberId);
     
     /**
-     * 매장 요약 데이터 존재 여부 확인
+     * 회원 요약 데이터 존재 여부 확인
      */
     boolean existsStoreSummary(
-            @Param("storeId") Long storeId,
+            @Param("memberId") Long memberId,
             @Param("summaryYearMonth") String summaryYearMonth
     );
     
@@ -105,5 +105,15 @@ public interface StoreSummaryMapper {
     int countStoreSummaryByOwnerId(
             @Param("ownerId") Long ownerId,
             @Param("summaryYearMonth") String summaryYearMonth
+    );
+    
+    /**
+     * 회원 ID별 매장 요약 데이터 조회
+     */
+    List<StoreSummary> selectStoreSummaryByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("summaryYearMonth") String summaryYearMonth,
+            @Param("limit") Integer limit,
+            @Param("offset") Integer offset
     );
 }

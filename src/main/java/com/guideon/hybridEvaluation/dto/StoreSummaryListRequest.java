@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class StoreSummaryListRequest {
-    private Long storeId;
+    private Long memberId;
     private Long ownerId;
     private String businessRegistrationNo;
     private String summaryYearMonth;

@@ -7,7 +7,7 @@ import java.sql.Date;
 
 @Data
 public class StoreSummaryUpdateRequest {
-    private Long storeId;
+    private Long memberId;
     private Long ownerId;
     private String businessRegistrationNo;
     private String industryCode;
