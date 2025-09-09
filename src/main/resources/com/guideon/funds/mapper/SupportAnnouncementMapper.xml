@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.funds.mapper.SupportAnnouncementMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="SupportAnnouncementVO" type="com.guideon.funds.domain.SupportAnnouncement">
+        <id property="id" column="id"/>
+        <result property="region" column="region"/>
+        <result property="industry" column="industry"/>
+        <result property="target" column="target"/>
+        <result property="title" column="title"/>
+        <result property="agency" column="agency"/>
+        <result property="applyPeriod" column="apply_period"/>
+        <result property="category" column="category"/>
+        <result property="applyStatus" column="apply_status"/>
+        <result property="noticeTitle" column="notice_title"/>
+        <result property="recruitType" column="recruit_type"/>
+        <result property="programType" column="program_type"/>
+        <result property="projectPeriod" column="project_period"/>
+        <result property="applyDetail" column="apply_detail"/>
+        <result property="description" column="description"/>
+        <result property="attachments" column="attachments"/>
+        <result property="tags" column="tags"/>
+        <result property="consultPeriod" column="consult_period"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <!-- 전체 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAllAnnouncements" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 특정 ID로 소상공인 지원사업 공고 상세 조회 -->
+    <select id="selectAnnouncementById" parameterType="long" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE id = #{id}
+    </select>
+
+    <!-- 지역별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByRegion" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE region = #{region}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 업종별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByIndustry" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE industry = #{industry}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 지역 + 업종별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByRegionAndIndustry" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE region = #{region} AND industry = #{industry}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 신청 상태별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByApplyStatus" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE apply_status = #{applyStatus}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 키워드로 소상공인 지원사업 공고 검색 -->
+    <select id="selectAnnouncementsByKeyword" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE title LIKE CONCAT('%', #{keyword}, '%')
+           OR notice_title LIKE CONCAT('%', #{keyword}, '%')
+           OR description LIKE CONCAT('%', #{keyword}, '%')
+           OR tags LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 기관별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByAgency" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE agency = #{agency}
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 카테고리별 소상공인 지원사업 공고 목록 조회 -->
+    <select id="selectAnnouncementsByCategory" parameterType="string" resultMap="SupportAnnouncementVO">
+        SELECT 
+            id, region, industry, target, title, agency, apply_period, 
+            category, apply_status, notice_title, recruit_type, program_type,
+            project_period, apply_detail, description, attachments, tags, 
+            consult_period, created_at
+        FROM support_announcement
+        WHERE category = #{category}
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>
