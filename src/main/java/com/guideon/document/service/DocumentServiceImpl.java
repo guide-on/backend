@@ -15,6 +15,7 @@ import com.guideon.document.mapper.PolicyMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -32,7 +33,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final LoanSessionMapper loanSessionMapper;
     private final DocumentParsingService documentParsingService;
     private final DocumentUploadsMapper documentUploadsMapper;
-
 
     @Override
     public Map<String, Object> createLoanSession(SessionRequest request) {
@@ -76,10 +76,12 @@ public class DocumentServiceImpl implements DocumentService {
 
         return response;
     }
+
     @Override
+    @Transactional
     public Map<String, Object> getRequiredDocuments(Long sessionId) {
 
-        log.info("서류 목록 조회 시작: sessionId={}", sessionId);
+        log.info("서류 생성 요청: sessionId={}", sessionId);
 
         // 1. 세션 정보 조회
         LoanSessionVO session = loanSessionMapper.selectById(sessionId);
@@ -87,39 +89,79 @@ public class DocumentServiceImpl implements DocumentService {
             throw new IllegalArgumentException("존재하지 않는 세션입니다. sessionId: " + sessionId);
         }
 
-        // 2. 정책자금 정보 조회
+        // 2. 이미 서류가 생성되었는지 체크
+        List<DocumentUploadsVO> existingDocs = documentUploadsMapper.selectBySessionId(sessionId);
+        if (!existingDocs.isEmpty()) {
+            log.info("이미 생성된 서류 존재: sessionId={}, 서류 수={}", sessionId, existingDocs.size());
+
+            // 정책자금 정보 조회 (정책명 포함을 위해)
+            PolicyVO policy = policyMapper.selectByPolicyId(session.getPolicyId());
+            String policyName = policy != null ? policy.getPolicyName() : null;
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("sessionId", sessionId);
+            response.put("policyName", policyName);
+            response.put("message", "서류가 이미 생성되었습니다.");
+            response.put("documentsCount", existingDocs.size());
+            response.put("isCreated", true);
+            return response;
+        }
+
+        // 3. 정책자금 정보 조회
         PolicyVO policy = policyMapper.selectByPolicyId(session.getPolicyId());
         if (policy == null) {
             throw new IllegalArgumentException("정책자금 정보를 찾을 수 없습니다.");
         }
 
-        // 3. 사업체 정보 조회
+        // 4. 사업체 정보 조회
         BusinessInfoVO businessInfo = businessInfoMapper.selectByBusinessId(session.getBusinessId());
         if (businessInfo == null) {
             throw new IllegalArgumentException("사업체 정보를 찾을 수 없습니다.");
         }
 
-        // 4. DocumentParsingService로 JSON 파싱
-        List<Map<String, Object>> documentGroups = documentParsingService.parseRequiredDocuments(
-            policy.getRequiredDocuments(), 
-            businessInfo
-        );
-
-        // 5. 서류 정보를 DB에 저장 (중복 체크)
-        List<DocumentUploadsVO> existingDocs = documentUploadsMapper.selectBySessionId(sessionId);
-        if (existingDocs.isEmpty()) {
-            saveDocuments(sessionId, documentGroups);
-            log.info("서류 정보 저장 완료: sessionId={}", sessionId);
-        } else {
-            log.info("이미 저장된 서류 목록 존재: sessionId={}, 기존 서류 수={}", sessionId, existingDocs.size());
+        // 5. DocumentParsingService로 JSON 파싱
+        List<Map<String, Object>> documentGroups;
+        try {
+            documentGroups = documentParsingService.parseRequiredDocuments(
+                    policy.getRequiredDocuments(),
+                    businessInfo
+            );
+        } catch (Exception e) {
+            log.error("서류 파싱 실패: sessionId={}", sessionId, e);
+            throw new RuntimeException("서류 정보 파싱 중 오류가 발생했습니다.");
         }
 
-        // 5. 응답 구성 (순서 보장)
+        // 6. 서류 저장 (더블 체크)
+        List<DocumentUploadsVO> recheck = documentUploadsMapper.selectBySessionId(sessionId);
+        if (recheck.isEmpty()) {
+            try {
+                saveDocuments(sessionId, documentGroups);
+                log.info("서류 생성 완료: sessionId={}", sessionId);
+            } catch (Exception e) {
+                log.error("서류 생성 실패: sessionId={}, 오류={}", sessionId, e.getMessage());
+                if (e.getMessage() != null && e.getMessage().contains("Duplicate")) {
+                    log.warn("중복 생성 시도 감지: sessionId={}", sessionId);
+                } else {
+                    throw e;
+                }
+            }
+        }
+
+        // 7. 간소화된 응답 (저장 완료 확인만)
+        int totalDocuments = documentGroups.stream()
+                .mapToInt(group -> {
+                    List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
+                    return docs != null ? docs.size() : 0;
+                }).sum();
+
         Map<String, Object> response = new LinkedHashMap<>();
+        response.put("success", true);
         response.put("sessionId", sessionId);
         response.put("policyName", policy.getPolicyName());
-        response.put("documentGroups", documentGroups);
-        response.put("totalGroups", documentGroups.size());
+        response.put("message", "서류 생성이 완료되었습니다.");
+        response.put("documentsCount", totalDocuments);
+        response.put("isCreated", true);
 
         return response;
     }
@@ -164,7 +206,7 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Map<String, Object> getDocumentStatus(Long sessionId) {
 
-        log.info("서류 상태 조회 시작: sessionId={}", sessionId);
+        log.info("서류 상태 조회: sessionId={}", sessionId);
 
         // 1. 세션 검증
         LoanSessionVO session = loanSessionMapper.selectById(sessionId);
@@ -172,84 +214,135 @@ public class DocumentServiceImpl implements DocumentService {
             throw new IllegalArgumentException("존재하지 않는 세션입니다. sessionId: " + sessionId);
         }
 
-        // 2. 해당 세션의 모든 서류 조회
+        // 2. 서류 목록 조회
         List<DocumentUploadsVO> documents = documentUploadsMapper.selectBySessionId(sessionId);
 
-        // 3. 그룹별로 서류 분류
-        Map<String, List<DocumentUploadsVO>> groupedDocuments = documents.stream()
-                .collect(Collectors.groupingBy(DocumentUploadsVO::getDocumentGroup));
+        // 3. 서류가 없으면 안내 응답
+        if (documents.isEmpty()) {
+            log.info("생성된 서류 없음: sessionId={}", sessionId);
 
-        // 4. 그룹별 상태 계산
-        List<Map<String, Object>> groupStatus = new ArrayList<>();
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("sessionId", sessionId);
+            response.put("policyName", "");
+            response.put("documentGroups", new ArrayList<>());
+            response.put("totalGroups", 0);
+            response.put("totalRequirements", 0);
+            response.put("completedRequirements", 0);
+            response.put("progressPercentage", 0.0);
+            response.put("message", "서류가 아직 생성되지 않았습니다.");
+
+            return response;
+        }
+
+        // 4. 정책자금 및 사업체 정보 조회
+        PolicyVO policy = policyMapper.selectByPolicyId(session.getPolicyId());
+        BusinessInfoVO businessInfo = businessInfoMapper.selectByBusinessId(session.getBusinessId());
+
+        if (policy == null || businessInfo == null) {
+            throw new IllegalArgumentException("정책자금 또는 사업체 정보를 찾을 수 없습니다.");
+        }
+
+        // 5. JSON 파싱으로 documentGroups 구조 생성 (레이블, 설명 포함)
+        List<Map<String, Object>> documentGroups;
+        try {
+            documentGroups = documentParsingService.parseRequiredDocuments(
+                    policy.getRequiredDocuments(),
+                    businessInfo
+            );
+        } catch (Exception e) {
+            log.error("서류 파싱 실패: sessionId={}", sessionId, e);
+            throw new RuntimeException("서류 정보 파싱 중 오류가 발생했습니다.");
+        }
+
+        // 6. DB 서류 데이터를 Map으로 구성 (빠른 조회용)
+        Map<String, DocumentUploadsVO> documentsMap = documents.stream()
+                .collect(Collectors.toMap(
+                        doc -> doc.getDocumentGroup() + "_" + doc.getDocumentName(),
+                        doc -> doc
+                ));
+
+        // 7. documentGroups에 실제 업로드 상태 반영
         int totalRequirements = 0;
         int completedRequirements = 0;
 
-        for (Map.Entry<String, List<DocumentUploadsVO>> entry : groupedDocuments.entrySet()) {
-            String groupKey = entry.getKey();
-            List<DocumentUploadsVO> groupDocs = entry.getValue();
+        for (Map<String, Object> group : documentGroups) {
+            String groupKey = (String) group.get("groupKey");
+            Integer minSelect = (Integer) group.get("minSelect");
+            List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
 
-            // 그룹 정보 (첫 번째 서류에서 추출)
-            DocumentUploadsVO firstDoc = groupDocs.get(0);
-            Integer minSelect = firstDoc.getGroupMinSelect();
+            if (docs != null && minSelect != null) {
+                totalRequirements += minSelect;
 
-            // 실제 제출된 서류 수 계산
-            int actualSubmittedCount = (int) groupDocs.stream()
-                    .filter(doc -> "UPLOADED".equals(doc.getUploadStatus()) || "VALIDATED".equals(doc.getUploadStatus()))
-                    .count();
+                int groupCompletedCount = 0;
 
-            // 표시용 제출 수 (택1 그룹은 minSelect로 제한)
-            int displaySubmittedCount = Math.min(actualSubmittedCount, minSelect);
+                // 각 서류에 실제 상태 정보 추가
+                for (Map<String, Object> doc : docs) {
+                    String docName = (String) doc.get("name");
+                    String mapKey = groupKey + "_" + docName;
 
-            // 그룹 완료 여부
-            boolean isCompleted = actualSubmittedCount >= minSelect;
+                    DocumentUploadsVO uploadedDoc = documentsMap.get(mapKey);
+                    if (uploadedDoc != null) {
+                        // DB의 실제 상태로 업데이트
+                        doc.put("id", uploadedDoc.getId());
+                        doc.put("uploadStatus", uploadedDoc.getUploadStatus());
+                        doc.put("isSelected", uploadedDoc.getIsSelected());
+                        doc.put("isMydataRetrieved", uploadedDoc.getIsMydataRetrieved());
 
-            // 진행률 계산을 위한 카운트
-            totalRequirements += minSelect;
-            if (isCompleted) {
-                completedRequirements += minSelect;
-            } else {
-                completedRequirements += displaySubmittedCount;
+                        // 파일 정보가 있으면 추가
+                        if (uploadedDoc.getOriginalFilename() != null) {
+                            doc.put("originalFilename", uploadedDoc.getOriginalFilename());
+                            doc.put("fileSize", uploadedDoc.getFileSize());
+                            doc.put("uploadedAt", uploadedDoc.getUploadedAt());
+                        }
+
+                        // 완료된 서류 카운트 (UPLOADED 또는 VALIDATED 상태)
+                        String status = uploadedDoc.getUploadStatus();
+                        if ("UPLOADED".equals(status) || "VALIDATED".equals(status)) {
+                            groupCompletedCount++;
+                        }
+
+                        // status를 uploadStatus로 덮어쓰기 (일관성)
+                        doc.put("status", uploadedDoc.getUploadStatus().toLowerCase());
+                    } else {
+                        // DB에 없으면 기본 상태
+                        doc.put("uploadStatus", "PENDING");
+                        doc.put("isSelected", false);
+                        doc.put("isMydataRetrieved", false);
+                        doc.put("status", "pending");
+                    }
+                }
+
+                // 그룹별 완료 수는 최소 선택 수로 제한
+                completedRequirements += Math.min(groupCompletedCount, minSelect);
+
+                // 그룹에 완료 정보 추가 (UI에서 사용할 수 있도록)
+                group.put("submitted", Math.min(groupCompletedCount, minSelect));
+                group.put("isCompleted", groupCompletedCount >= minSelect);
             }
-
-            // 서류별 상세 정보
-            List<Map<String, Object>> documentDetails = groupDocs.stream()
-                    .map(doc -> {
-                        Map<String, Object> detail = new LinkedHashMap<>();
-                        detail.put("id", doc.getId());
-                        detail.put("documentName", doc.getDocumentName());
-                        detail.put("uploadStatus", doc.getUploadStatus());
-                        detail.put("isSelected", doc.getIsSelected());
-                        detail.put("isMydataRetrieved", doc.getIsMydataRetrieved());
-                        detail.put("isMydataAvailable", doc.getIsMydataAvailable());
-                        return detail;
-                    })
-                    .toList();
-
-            // 그룹 상태 정보
-            Map<String, Object> groupInfo = new LinkedHashMap<>();
-            groupInfo.put("groupKey", groupKey);
-            groupInfo.put("minSelect", minSelect);
-            groupInfo.put("submitted", displaySubmittedCount);  // 조정된 제출 수
-            groupInfo.put("isCompleted", isCompleted);
-            groupInfo.put("documents", documentDetails);
-
-            groupStatus.add(groupInfo);
         }
 
-        // 5. 전체 진행률 계산
+        // 8. 전체 진행률 계산
         double progressPercentage = totalRequirements > 0 ?
                 Math.round((double) completedRequirements / totalRequirements * 100.0 * 100.0) / 100.0 : 0.0;
 
-        // 6. 응답 구성
+        // 9. 세션 진행 상태 업데이트
+        loanSessionMapper.updateSessionProgress(sessionId, totalRequirements, completedRequirements, progressPercentage);
+
+        // 10. getRequiredDocuments와 동일한 구조 + 상태 정보
         Map<String, Object> response = new LinkedHashMap<>();
+        response.put("success", true);
         response.put("sessionId", sessionId);
+        response.put("policyName", policy.getPolicyName());
+
+        // 핵심: getRequiredDocuments와 동일한 구조
+        response.put("documentGroups", documentGroups);
+        response.put("totalGroups", documentGroups.size());
+
+        // 추가: 진행률 정보
         response.put("totalRequirements", totalRequirements);
         response.put("completedRequirements", completedRequirements);
         response.put("progressPercentage", progressPercentage);
-        response.put("groupStatus", groupStatus);
-
-        // 7. loan_sessions 테이블 업데이트 추가
-        loanSessionMapper.updateSessionProgress(sessionId, totalRequirements, completedRequirements, progressPercentage);
 
         log.info("서류 상태 조회 완료: sessionId={}, 진행률={}%", sessionId, progressPercentage);
 
@@ -321,6 +414,43 @@ public class DocumentServiceImpl implements DocumentService {
     }
 
     /**
+     * 파싱된 서류 정보를 DB에 저장
+     */
+    private void saveDocuments(Long sessionId, List<Map<String, Object>> documentGroups) {
+
+        log.info("서류 저장 시작: sessionId={}, 그룹 수={}", sessionId, documentGroups.size());
+
+        List<DocumentUploadsVO> documentUploads = new ArrayList<>();
+
+        for (Map<String, Object> group : documentGroups) {
+            String groupKey = (String) group.get("groupKey");
+            Integer minSelect = (Integer) group.get("minSelect");
+            List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
+
+            if (docs != null) {
+                for (Map<String, Object> doc : docs) {
+                    DocumentSaveRequest request = DocumentSaveRequest.builder()
+                            .documentGroup(groupKey)
+                            .documentName((String) doc.get("name"))
+                            .isMydataAvailable((Boolean) doc.get("mydataEligible"))
+                            .groupMinSelect(minSelect)
+                            .isSelected(minSelect != 1)  // 택1이면 false, 나머지 true
+                            .build();
+
+                    documentUploads.add(request.toVO(sessionId));
+                }
+            }
+        }
+
+        if (!documentUploads.isEmpty()) {
+            documentUploadsMapper.insertDocuments(documentUploads);
+            log.info("서류 정보 저장 성공: sessionId={}, 저장된 서류 수={}", sessionId, documentUploads.size());
+        } else {
+            log.warn("저장할 서류가 없음: sessionId={}", sessionId);
+        }
+    }
+
+    /**
      * 저장용 파일명 생성 (중복 방지)
      */
     private String generateStoredFilename(String originalFilename) {
@@ -349,39 +479,5 @@ public class DocumentServiceImpl implements DocumentService {
         file.transferTo(targetFile);
 
         return filePath;
-    }
-
-
-    /**
-     * 파싱된 서류 정보를 DB에 저장
-     */
-    private void saveDocuments(Long sessionId, List<Map<String, Object>> documentGroups) {
-
-        List<DocumentUploadsVO> documentUploads = new ArrayList<>();
-
-        for (Map<String, Object> group : documentGroups) {
-            String groupKey = (String) group.get("groupKey");
-            Integer minSelect = (Integer) group.get("minSelect");
-            List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
-
-            if (docs != null) {
-                for (Map<String, Object> doc : docs) {
-                    DocumentSaveRequest request = DocumentSaveRequest.builder()
-                            .documentGroup(groupKey)
-                            .documentName((String) doc.get("name"))
-                            .isMydataAvailable((Boolean) doc.get("mydataEligible"))
-                            .groupMinSelect(minSelect)
-                            .isSelected(minSelect != 1)  // 택1이면 false, 나머지 true
-                            .build();
-
-                    documentUploads.add(request.toVO(sessionId));
-                }
-            }
-        }
-
-        if (!documentUploads.isEmpty()) {
-            documentUploadsMapper.insertDocuments(documentUploads);
-            log.info("서류 정보 저장 완료: sessionId={}, 저장된 서류 수={}", sessionId, documentUploads.size());
-        }
     }
 }
