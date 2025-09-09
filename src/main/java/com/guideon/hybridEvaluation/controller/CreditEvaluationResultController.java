@@ -51,6 +51,18 @@ public class CreditEvaluationResultController {
         return ResponseEntity.ok(response);
     }
     
+    @GetMapping("/me")
+    @ApiOperation(value = "현재 로그인한 사용자 신용평가 결과 조회", notes = "현재 로그인한 사용자의 신용평가 결과를 조회합니다.")
+    public ResponseEntity<CommonResponseDTO<CreditEvaluationResultResponse>> getMyEvaluationResult() {
+        
+        log.info("현재 로그인한 사용자 신용평가 결과 조회 요청");
+        
+        CommonResponseDTO<CreditEvaluationResultResponse> response = 
+            creditEvaluationResultService.getMyEvaluationResult();
+        
+        return ResponseEntity.ok(response);
+    }
+    
     @GetMapping("/{memberId}")
     @ApiOperation(value = "특정 사용자 신용평가 결과 조회", notes = "특정 사용자의 신용평가 결과를 조회합니다.")
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResultResponse>> getCreditEvaluationResult(

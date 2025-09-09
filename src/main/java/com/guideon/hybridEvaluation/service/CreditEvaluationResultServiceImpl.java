@@ -139,6 +139,31 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
     }
     
     @Override
+    public CommonResponseDTO<CreditEvaluationResultResponse> getMyEvaluationResult() {
+        
+        log.info("현재 로그인한 사용자 신용평가 결과 조회 시작");
+        
+        // 로그인한 사용자의 memberId 가져오기
+        Long loginMemberId = loginUserProvider.getLoginMemberId();
+        if (loginMemberId == null) {
+            throw new BadRequestException("로그인이 필요합니다.");
+        }
+        
+        CreditEvaluationResult result = creditEvaluationResultMapper.selectCreditEvaluationResult(loginMemberId);
+        
+        if (result == null) {
+            throw new CreditEvaluationNotFoundException(
+                "신용평가 결과를 찾을 수 없습니다. memberId: " + loginMemberId);
+        }
+        
+        CreditEvaluationResultResponse response = convertToResponse(result);
+        
+        log.info("현재 로그인한 사용자 신용평가 결과 조회 완료: memberId={}, totalScore={}", loginMemberId, response.getTotalScore());
+        
+        return CommonResponseDTO.success("신용평가 결과 조회가 완료되었습니다.", response);
+    }
+    
+    @Override
     public CommonResponseDTO<CreditEvaluationResultResponse> getCreditEvaluationResult(Long memberId) {
         
         log.info("신용평가 결과 조회 시작: memberId={}", memberId);

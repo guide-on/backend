@@ -46,7 +46,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
             CreditEvaluation creditEvaluation = new CreditEvaluation();
             BeanUtils.copyProperties(request, creditEvaluation);
             
-            // 로그인한 사용자의 memberId를 강제로 설정 (보안상 중요)
+            // 로그인한 사용자의 memberId를 설정 (request에서 받지 않고 직접 설정)
             creditEvaluation.setMemberId(String.valueOf(loginMemberId));
             creditEvaluation.setEvaluationDate(new Timestamp(System.currentTimeMillis()));
             
@@ -414,9 +414,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
      * 생성 요청 유효성 검증
      */
     private void validateCreateRequest(CreditEvaluationCreateRequest request) {
-        if (request.getMemberId() == null || request.getMemberId().trim().isEmpty()) {
-            throw new BadRequestException("사용자 ID는 필수입니다.");
-        }
+        // memberId는 loginUserProvider에서 자동으로 설정되므로 검증하지 않음
         
         // 추가적인 비즈니스 로직 검증
         validateBusinessRules(request);

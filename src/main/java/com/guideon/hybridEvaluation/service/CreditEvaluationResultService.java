@@ -26,6 +26,12 @@ public interface CreditEvaluationResultService {
             CreditEvaluationResultUpdateRequest request);
     
     /**
+     * 현재 로그인한 사용자의 신용평가 결과 조회
+     * @return 신용평가 결과
+     */
+    CommonResponseDTO<CreditEvaluationResultResponse> getMyEvaluationResult();
+    
+    /**
      * 특정 사용자의 신용평가 결과 조회
      * @param memberId 사용자 ID
      * @return 신용평가 결과
