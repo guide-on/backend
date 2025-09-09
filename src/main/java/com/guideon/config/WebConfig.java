@@ -19,7 +19,6 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
     final long MAX_REQUEST_SIZE = 1024 * 1024 * 20L;   // 20MB
     final int FILE_SIZE_THRESHOLD = 1024 * 1024 * 5;   // 5MB
 
-
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException {
         // 0) .env 경로 결정 (VM 옵션이나 환경변수로 지정 가능)
@@ -51,8 +50,7 @@ public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitiali
 
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        // 순서: EnvConfig -> RootConfig -> SecurityConfig -> RedisConfig
-        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class, VisionConfig.class, JacksonConfig.class };
+        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class, MailConfig.class, VisionConfig.class };
     }
 
     @Override
