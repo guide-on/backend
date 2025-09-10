@@ -33,10 +33,10 @@ public interface CreditEvaluationResultService {
     
     /**
      * 특정 사용자의 신용평가 결과 조회
-     * @param memberId 사용자 ID
+     * @param sessionId 사용자 ID
      * @return 신용평가 결과
      */
-    CommonResponseDTO<CreditEvaluationResultResponse> getCreditEvaluationResult(Long memberId);
+    CommonResponseDTO<CreditEvaluationResultResponse> getCreditEvaluationResult(Long sessionId);
     
     /**
      * 모든 신용평가 결과 목록 조회
@@ -55,8 +55,8 @@ public interface CreditEvaluationResultService {
     
     /**
      * 신용평가 결과 삭제
-     * @param memberId 사용자 ID
+     * @param sessionId 사용자 ID
      * @return 삭제 결과
      */
-    CommonResponseDTO<Void> deleteCreditEvaluationResult(Long memberId);
+    CommonResponseDTO<Void> deleteCreditEvaluationResult(Long sessionId);
 }

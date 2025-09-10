@@ -33,7 +33,7 @@ public class CreditEvaluationController {
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResponse>> createCreditEvaluation(
             @RequestBody CreditEvaluationCreateRequest request) {
         
-        log.info("신용평가 데이터 생성 요청: memberId={}", request.getMemberId());
+        log.info("신용평가 데이터 생성 요청: sessionId={}", request.getSessionId());
         
         CommonResponseDTO<CreditEvaluationResponse> response = 
             creditEvaluationService.createCreditEvaluation(request);
@@ -46,8 +46,8 @@ public class CreditEvaluationController {
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResponse>> updateCreditEvaluation(
             @RequestBody CreditEvaluationUpdateRequest request) {
         
-        log.info("신용평가 데이터 수정 요청: memberId={}, evaluationDate={}", 
-                request.getMemberId(), request.getEvaluationDate());
+        log.info("신용평가 데이터 수정 요청: sessionId={}, evaluationDate={}", 
+                request.getSessionId(), request.getEvaluationDate());
         
         CommonResponseDTO<CreditEvaluationResponse> response = 
             creditEvaluationService.updateCreditEvaluation(request);
@@ -55,31 +55,31 @@ public class CreditEvaluationController {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/{memberId}")
+    @GetMapping("/{sessionId}")
     @ApiOperation(value = "특정 평가일자 신용평가 데이터 조회", notes = "특정 사용자의 특정 평가일자 신용평가 데이터를 조회합니다.")
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResponse>> getCreditEvaluation(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId,
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId,
             @ApiParam(value = "평가일자 (yyyy-MM-dd HH:mm:ss)", required = true)
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime evaluationDate) {
         
-        log.info("신용평가 데이터 조회 요청: memberId={}, evaluationDate={}", memberId, evaluationDate);
+        log.info("신용평가 데이터 조회 요청: sessionId={}, evaluationDate={}", sessionId, evaluationDate);
         
         Timestamp timestamp = Timestamp.valueOf(evaluationDate);
         CommonResponseDTO<CreditEvaluationResponse> response = 
-            creditEvaluationService.getCreditEvaluation(memberId, timestamp);
+            creditEvaluationService.getCreditEvaluation(sessionId, timestamp);
         
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/{memberId}/latest")
+    @GetMapping("/{sessionId}/latest")
     @ApiOperation(value = "최신 신용평가 데이터 조회", notes = "특정 사용자의 최신 신용평가 데이터를 조회합니다.")
     public ResponseEntity<CommonResponseDTO<CreditEvaluationResponse>> getLatestCreditEvaluation(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId) {
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId) {
         
-        log.info("최신 신용평가 데이터 조회 요청: memberId={}", memberId);
+        log.info("최신 신용평가 데이터 조회 요청: sessionId={}", sessionId);
         
         CommonResponseDTO<CreditEvaluationResponse> response = 
-            creditEvaluationService.getLatestCreditEvaluation(memberId);
+            creditEvaluationService.getLatestCreditEvaluation(sessionId);
         
         return ResponseEntity.ok(response);
     }
@@ -87,7 +87,7 @@ public class CreditEvaluationController {
     @GetMapping
     @ApiOperation(value = "신용평가 데이터 목록 조회", notes = "조건에 따른 신용평가 데이터 목록을 조회합니다.")
     public ResponseEntity<CommonResponseDTO<List<CreditEvaluationResponse>>> getCreditEvaluationList(
-            @ApiParam(value = "사용자 ID (선택)") @RequestParam(required = false) String memberId,
+            @ApiParam(value = "사용자 ID (선택)") @RequestParam(required = false) String sessionId,
             @ApiParam(value = "시작일자 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) 
             @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startDate,
             @ApiParam(value = "종료일자 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) 
@@ -97,10 +97,10 @@ public class CreditEvaluationController {
             @ApiParam(value = "정렬 기준", defaultValue = "evaluationDate") @RequestParam(defaultValue = "evaluationDate") String sortBy,
             @ApiParam(value = "정렬 순서", defaultValue = "DESC") @RequestParam(defaultValue = "DESC") String sortOrder) {
         
-        log.info("신용평가 데이터 목록 조회 요청: memberId={}, page={}, limit={}", memberId, page, limit);
+        log.info("신용평가 데이터 목록 조회 요청: sessionId={}, page={}, limit={}", sessionId, page, limit);
         
         CreditEvaluationListRequest request = new CreditEvaluationListRequest();
-        request.setMemberId(memberId);
+        request.setSessionId(sessionId);
         request.setStartDate(startDate != null ? Timestamp.valueOf(startDate) : null);
         request.setEndDate(endDate != null ? Timestamp.valueOf(endDate) : null);
         request.setPage(page);
@@ -114,74 +114,74 @@ public class CreditEvaluationController {
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/{memberId}/history")
+    @GetMapping("/{sessionId}/history")
     @ApiOperation(value = "사용자 신용평가 이력 조회", notes = "특정 사용자의 신용평가 이력을 조회합니다.")
     public ResponseEntity<CommonResponseDTO<List<CreditEvaluationResponse>>> getCreditEvaluationHistory(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId,
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId,
             @ApiParam(value = "페이지 번호", defaultValue = "1") @RequestParam(defaultValue = "1") Integer page,
             @ApiParam(value = "페이지당 개수", defaultValue = "20") @RequestParam(defaultValue = "20") Integer limit) {
         
-        log.info("사용자 신용평가 이력 조회 요청: memberId={}, page={}, limit={}", memberId, page, limit);
+        log.info("사용자 신용평가 이력 조회 요청: sessionId={}, page={}, limit={}", sessionId, page, limit);
         
         CommonResponseDTO<List<CreditEvaluationResponse>> response = 
-            creditEvaluationService.getCreditEvaluationHistory(memberId, page, limit);
+            creditEvaluationService.getCreditEvaluationHistory(sessionId, page, limit);
         
         return ResponseEntity.ok(response);
     }
     
-    @DeleteMapping("/{memberId}")
+    @DeleteMapping("/{sessionId}")
     @ApiOperation(value = "신용평가 데이터 삭제", notes = "특정 사용자의 특정 평가일자 신용평가 데이터를 삭제합니다.")
     public ResponseEntity<CommonResponseDTO<Void>> deleteCreditEvaluation(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId,
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId,
             @ApiParam(value = "평가일자 (yyyy-MM-dd HH:mm:ss)", required = true)
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime evaluationDate) {
         
-        log.info("신용평가 데이터 삭제 요청: memberId={}, evaluationDate={}", memberId, evaluationDate);
+        log.info("신용평가 데이터 삭제 요청: sessionId={}, evaluationDate={}", sessionId, evaluationDate);
         
         Timestamp timestamp = Timestamp.valueOf(evaluationDate);
         CommonResponseDTO<Void> response = 
-            creditEvaluationService.deleteCreditEvaluation(memberId, timestamp);
+            creditEvaluationService.deleteCreditEvaluation(sessionId, timestamp);
         
         return ResponseEntity.ok(response);
     }
     
-    @DeleteMapping("/{memberId}/all")
+    @DeleteMapping("/{sessionId}/all")
     @ApiOperation(value = "사용자 모든 신용평가 데이터 삭제", notes = "특정 사용자의 모든 신용평가 데이터를 삭제합니다.")
     public ResponseEntity<CommonResponseDTO<Void>> deleteAllCreditEvaluationByMemberId(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId) {
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId) {
         
-        log.info("사용자 모든 신용평가 데이터 삭제 요청: memberId={}", memberId);
+        log.info("사용자 모든 신용평가 데이터 삭제 요청: sessionId={}", sessionId);
         
         CommonResponseDTO<Void> response = 
-            creditEvaluationService.deleteAllCreditEvaluationByMemberId(memberId);
+            creditEvaluationService.deleteAllCreditEvaluationBySessionId(sessionId);
         
         return ResponseEntity.ok(response);
     }
     
-    @GetMapping("/{memberId}/score-result")
+    @GetMapping("/{sessionId}/score-result")
     @ApiOperation(value = "신용평가 데이터와 계산된 점수 결과 함께 조회", 
                   notes = "특정 사용자의 최신 신용평가 데이터와 계산된 점수 결과를 함께 조회합니다.")
     public ResponseEntity<String> getCreditEvaluationWithScore(
-            @ApiParam(value = "사용자 ID", required = true) @PathVariable String memberId) {
+            @ApiParam(value = "사용자 ID", required = true) @PathVariable String sessionId) {
         
-        log.info("신용평가 데이터 및 점수 결과 조회 요청: memberId={}", memberId);
+        log.info("신용평가 데이터 및 점수 결과 조회 요청: sessionId={}", sessionId);
         
         try {
             // 최신 신용평가 데이터 조회
             CommonResponseDTO<CreditEvaluationResponse> evaluationResponse = 
-                creditEvaluationService.getLatestCreditEvaluation(memberId);
+                creditEvaluationService.getLatestCreditEvaluation(sessionId);
             
             // 점수 결과 조회
-            Long memberIdLong = Long.valueOf(memberId);
+            Long sessionIdLong = Long.valueOf(sessionId);
             CommonResponseDTO<CreditEvaluationResultResponse> scoreResponse = 
-                creditEvaluationResultService.getCreditEvaluationResult(memberIdLong);
+                creditEvaluationResultService.getCreditEvaluationResult(sessionIdLong);
             
             // 결과 조합
             StringBuilder result = new StringBuilder();
             result.append("=== 신용평가 데이터 ===\n");
             if (evaluationResponse.isSuccess() && evaluationResponse.getData() != null) {
                 CreditEvaluationResponse data = evaluationResponse.getData();
-                result.append(String.format("사용자ID: %s\n", data.getMemberId()));
+                result.append(String.format("사용자ID: %s\n", data.getSessionId()));
                 result.append(String.format("평가일시: %s\n", data.getEvaluationDate()));
                 result.append(String.format("현재연체금액: %s\n", data.getCurrentOverdueAmount()));
                 result.append(String.format("최대연체일수: %d일\n", data.getMaxOverdueDays()));

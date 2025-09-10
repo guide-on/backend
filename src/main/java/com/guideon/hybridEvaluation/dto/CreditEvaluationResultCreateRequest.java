@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @ApiModel(description = "신용평가 결과 생성 요청")
 public class CreditEvaluationResultCreateRequest {
     
-    @ApiModelProperty(value = "사용자 고유 식별자 (member_id)", required = true, example = "1001")
-    private Long memberId;
+    @ApiModelProperty(value = "사용자 고유 식별자 (session_id)", required = true, example = "1001")
+    private Long sessionId;
     
     @ApiModelProperty(value = "우리 서비스 최종 신용점수", example = "750")
     private Integer totalScore;

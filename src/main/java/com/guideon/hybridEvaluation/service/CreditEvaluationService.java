@@ -21,12 +21,12 @@ public interface CreditEvaluationService {
     /**
      * 특정 사용자의 특정 평가일자 데이터 조회
      */
-    CommonResponseDTO<CreditEvaluationResponse> getCreditEvaluation(String memberId, Timestamp evaluationDate);
+    CommonResponseDTO<CreditEvaluationResponse> getCreditEvaluation(String sessionId, Timestamp evaluationDate);
     
     /**
      * 특정 사용자의 최신 신용평가 데이터 조회
      */
-    CommonResponseDTO<CreditEvaluationResponse> getLatestCreditEvaluation(String memberId);
+    CommonResponseDTO<CreditEvaluationResponse> getLatestCreditEvaluation(String sessionId);
     
     /**
      * 신용평가 데이터 목록 조회 (페이징)
@@ -36,15 +36,15 @@ public interface CreditEvaluationService {
     /**
      * 특정 사용자의 신용평가 이력 조회
      */
-    CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationHistory(String memberId, Integer page, Integer limit);
+    CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationHistory(String sessionId, Integer page, Integer limit);
     
     /**
      * 신용평가 데이터 삭제
      */
-    CommonResponseDTO<Void> deleteCreditEvaluation(String memberId, Timestamp evaluationDate);
+    CommonResponseDTO<Void> deleteCreditEvaluation(String sessionId, Timestamp evaluationDate);
     
     /**
      * 특정 사용자의 모든 신용평가 데이터 삭제
      */
-    CommonResponseDTO<Void> deleteAllCreditEvaluationByMemberId(String memberId);
+    CommonResponseDTO<Void> deleteAllCreditEvaluationBySessionId(String sessionId);
 }

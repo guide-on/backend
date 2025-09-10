@@ -6,7 +6,7 @@ import java.sql.Timestamp;
 
 @Data
 public class CreditEvaluationListRequest {
-    private String memberId;            // 특정 사용자의 평가 이력 조회 (member_id 컬럼)
+    private String sessionId;            // 특정 사용자의 평가 이력 조회 (session_id 컬럼)
     private Timestamp startDate;        // 평가일자 범위 검색 시작
     private Timestamp endDate;          // 평가일자 범위 검색 종료
     private Integer page = 1;           // 페이지 번호 (기본값: 1)
