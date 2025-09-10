@@ -1,15 +1,20 @@
 package com.guideon.document.controller;
 
 import com.guideon.common.redis.RedisService;
+import com.guideon.document.domain.BusinessInfoVO;
 import com.guideon.document.dto.BusinessInfoDTO;
 import com.guideon.document.dto.UserSurveyRequest;
 import com.guideon.document.service.SurveyService;
+import com.guideon.member.dto.BusinessProfileDTO;
+import com.guideon.member.service.BusinessProfileService;
+import com.guideon.member.service.BusinessProfileServiceImpl;
 import com.guideon.security.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @RestController
@@ -20,6 +25,7 @@ public class SurveyController {
 
     private final SurveyService surveyService;
     private final LoginUserProvider loginUserProvider;
+    private final BusinessProfileService businessProfileService;
 
     /**
      * 로그인한 사용자 정보 추출 및 검증
@@ -52,8 +58,9 @@ public class SurveyController {
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
 
-            // 2. 회원 정보에서 industryCode 조회 (현재는 임시값)
-            String industryCode = "56111";
+            // 2. 회원 정보에서 industryCode 조회
+            BusinessProfileDTO businessProfileDTO = businessProfileService.getBusinessProfile(memberId);
+            String industryCode = businessProfileDTO.getKsicCode();
 
             // 3. BusinessInfoDTO 생성
             BusinessInfoDTO businessInfoDTO = BusinessInfoDTO.builder()
@@ -123,28 +130,50 @@ public class SurveyController {
     }
 
     /**
-     * 새로운 시뮬레이션 시작 (설문 초기화)
+     * 현재 로그인한 사용자의 설문 초기화
      */
-    @PostMapping("/reset")
-    public ResponseEntity<Map<String, Object>> resetSurvey() {
+    @DeleteMapping("/reset")
+    public ResponseEntity<Map<String, Object>> resetSurveyByMember() {
+
         try {
+            // 기존 extractAuthInfo() 메서드 활용
             Map<String, Object> authInfo = extractAuthInfo();
             Long memberId = (Long) authInfo.get("memberId");
 
-            // 설문 초기화
-            surveyService.resetSurveyByMemberId(memberId);
+            log.info("설문 초기화 요청: memberId={}", memberId);
+
+            // 1. 회원의 비즈니스 정보 조회 (서비스 계층 활용)
+            BusinessInfoDTO businessInfo = surveyService.getBusinessInfoByMemberId(memberId);
+
+            if (businessInfo == null) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "초기화할 설문 정보가 없습니다"
+                ));
+            }
+
+            // 2. 서비스 계층을 통한 초기화
+            surveyService.resetSurveyByBusinessId(businessInfo.getBusinessId());
 
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
-            response.put("message", "새로운 시뮬레이션을 시작할 수 있습니다.");
+            response.put("message", "설문이 초기화되었습니다. 처음부터 다시 시작해주세요.");
 
             return ResponseEntity.ok(response);
 
+        } catch (SecurityException e) {
+            log.error("인증 오류: {}", e.getMessage());
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+
         } catch (Exception e) {
-            Map<String, Object> errorResponse = new LinkedHashMap<>();
-            errorResponse.put("success", false);
-            errorResponse.put("message", "설문 초기화 중 오류가 발생했습니다: " + e.getMessage());
-            return ResponseEntity.badRequest().body(errorResponse);
+            log.error("설문 초기화 실패", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "설문 초기화 중 오류가 발생했습니다"
+            ));
         }
     }
 }

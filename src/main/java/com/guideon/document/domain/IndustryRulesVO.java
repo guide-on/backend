@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class IndustryRulesVO {
     private Long id;                    // id
     private String industryCode;        // 업종코드
-    private String industryName;        // 업종명
     private Boolean isLoanEligible;     // 융자조건 제외 여부
     private Integer employeeLimit;      // 상시근로자 제한
     private Boolean hasSpecialCondition; // 특별 조건

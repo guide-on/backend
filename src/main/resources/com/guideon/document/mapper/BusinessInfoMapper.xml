@@ -35,13 +35,6 @@
         WHERE business_id = #{businessId}
     </update>
 
-    <!-- 설문 초기화 (새로운 시뮬레이션 시작) -->
-    <update id="resetSurveyCompleted" parameterType="Long">
-        UPDATE user_business_info
-        SET survey_completed_at = NULL
-        WHERE member_id = #{memberId}
-    </update>
-
     <!-- ID로 조회 -->
     <select id="selectByBusinessId" parameterType="long" resultType="BusinessInfoVO">
         SELECT
@@ -57,4 +50,10 @@
         FROM user_business_info
         WHERE business_id = #{businessId}
     </select>
+
+    <!-- 비즈니스 정보 삭제 (CASCADE로 관련 세션들도 자동 삭제) -->
+    <delete id="deleteByBusinessId" parameterType="Long">
+        DELETE FROM user_business_info
+        WHERE business_id = #{businessId}
+    </delete>
 </mapper>

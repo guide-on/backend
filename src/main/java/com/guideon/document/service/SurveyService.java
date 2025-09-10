@@ -15,7 +15,7 @@ public interface SurveyService {
     BusinessInfoDTO getBusinessInfoByMemberId(Long memberId);
 
     /**
-     * 설문 초기화 (새로운 시뮬레이션 시작)
+     * 비즈니스 ID로 설문 초기화 (CASCADE로 세션들도 함께 삭제)
      */
-    void resetSurveyByMemberId(Long memberId);
+    void resetSurveyByBusinessId(Long businessId);
 }

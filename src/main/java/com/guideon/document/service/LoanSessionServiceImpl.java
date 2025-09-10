@@ -99,16 +99,4 @@ public class LoanSessionServiceImpl implements LoanSessionService {
                 .map(LoanSessionDTO::fromVO)
                 .collect(Collectors.toList());
     }
-
-    @Override
-    public LoanSessionDTO getSessionInfo(Long sessionId) {
-        log.info("세션 상세 정보 조회: sessionId={}", sessionId);
-
-        LoanSessionVO session = loanSessionMapper.selectById(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("존재하지 않는 세션입니다: " + sessionId);
-        }
-
-        return LoanSessionDTO.fromVO(session);
-    }
 }
