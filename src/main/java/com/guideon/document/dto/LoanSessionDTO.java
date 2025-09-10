@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 @Builder
 public class LoanSessionDTO {
 
+    private Long sessionId; // 세션아이디
     private Long businessId;
     private Long policyId;
     private String sessionStatus;
@@ -27,6 +28,7 @@ public class LoanSessionDTO {
      */
     public LoanSessionVO toVO() {
         return LoanSessionVO.builder()
+                .id(sessionId)
                 .businessId(this.businessId)
                 .policyId(this.policyId)
                 .sessionStatus(this.sessionStatus)
@@ -44,6 +46,7 @@ public class LoanSessionDTO {
         if (vo == null) return null;
 
         return LoanSessionDTO.builder()
+                .sessionId(vo.getId())
                 .businessId(vo.getBusinessId())
                 .policyId(vo.getPolicyId())
                 .sessionStatus(vo.getSessionStatus())

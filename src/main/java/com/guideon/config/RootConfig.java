@@ -26,7 +26,8 @@ import javax.sql.DataSource;
         "com.guideon.document.mapper",
         "com.guideon.community.mapper",
         "com.guideon.funds.mapper",
-        "com.guideon.hybridEvaluation.mapper"
+        "com.guideon.hybridEvaluation.mapper",
+        "com.guideon.simulation.result.mapper"
 })
 @ComponentScan(basePackages = {
         "com.guideon.member.service",
@@ -43,7 +44,8 @@ import javax.sql.DataSource;
         "com.guideon.hybridEvaluation",
         "com.guideon.community",      // 서비스/컨트롤러/예외
         "com.guideon.common",          // 공통 응답/예외/스토리지
-        "com.guideon.funds"
+        "com.guideon.funds",
+        "com.guideon.simulation.result"
 })
 @EnableTransactionManagement
 public class RootConfig {

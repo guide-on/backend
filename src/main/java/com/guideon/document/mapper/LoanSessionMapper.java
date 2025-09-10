@@ -33,8 +33,4 @@ public interface LoanSessionMapper {
     LoanSessionVO selectByBusinessIdAndPolicyId(@Param("businessId") Long businessId,
                                                 @Param("policyId") Long policyId);
 
-    /**
-     * business_id의 모든 세션 조회 (시뮬레이션 목록 조회용)
-     */
-    List<LoanSessionVO> selectAllByBusinessId(Long businessId);
 }
