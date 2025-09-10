@@ -35,49 +35,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final DocumentUploadsMapper documentUploadsMapper;
 
     @Override
-    public Map<String, Object> createLoanSession(SessionRequest request) {
-
-        log.info("대출 세션 생성 시작: businessId={}, policyId={}",
-                request.getBusinessId(), request.getPolicyId());
-
-        // 1. 사업체 정보 유효성 검증
-        BusinessInfoVO businessInfo = businessInfoMapper.selectByBusinessId(request.getBusinessId());
-        if (businessInfo == null) {
-            throw new IllegalArgumentException("존재하지 않는 사업체 정보입니다. businessId: " + request.getBusinessId());
-        }
-
-        // 2. 정책자금 유효성 검증
-        PolicyVO policy = policyMapper.selectByPolicyId(request.getPolicyId());
-        if (policy == null) {
-            throw new IllegalArgumentException("존재하지 않는 정책자금입니다. policyId: " + request.getPolicyId());
-        }
-
-        // 3. 실제 세션 생성
-        LoanSessionDTO sessionDTO = LoanSessionDTO.createDefault(
-                request.getBusinessId(),
-                request.getPolicyId()
-        );
-
-        LoanSessionVO loanSession = sessionDTO.toVO();
-        loanSessionMapper.insert(loanSession);
-        Long sessionId = loanSession.getId();
-
-        // 4. 응답 구성
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("sessionId", sessionId);
-        response.put("businessId", request.getBusinessId());
-        response.put("policyId", request.getPolicyId());
-        response.put("sessionStatus", "IN_PROGRESS");
-        response.put("requiredDocuments", 0);
-        response.put("submittedDocuments", 0);
-        response.put("progressPercentage", 0.0);
-
-        log.info("대출 세션 생성 완료: sessionId={}", sessionId);
-
-        return response;
-    }
-
-    @Override
     @Transactional
     public Map<String, Object> getRequiredDocuments(Long sessionId) {
 

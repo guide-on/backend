@@ -20,4 +20,14 @@ public interface BusinessInfoMapper {
      * 회원 ID로 조회
      */
     BusinessInfoVO selectByMemberId(Long memberId);
+
+    /**
+     * 설문 완료시각 업데이트
+     */
+    int updateSurveyCompleted(BusinessInfoVO businessInfoVO);
+
+    /**
+     * 설문 초기화
+     */
+    int resetSurveyCompleted(Long memberId);
 }
