@@ -38,6 +38,23 @@ public class LoanSessionDTO {
     }
 
     /**
+     * VO -> DTO 변환
+     */
+    public static LoanSessionDTO fromVO(LoanSessionVO vo) {
+        if (vo == null) return null;
+
+        return LoanSessionDTO.builder()
+                .businessId(vo.getBusinessId())
+                .policyId(vo.getPolicyId())
+                .sessionStatus(vo.getSessionStatus())
+                .requiredDocuments(vo.getRequiredDocuments())
+                .submittedDocuments(vo.getSubmittedDocuments())
+                .validatedDocuments(vo.getValidatedDocuments())
+                .progressPercentage(vo.getProgressPercentage())
+                .build();
+    }
+
+    /**
      * 기본 세션 생성용 정적 메서드
      */
     public static LoanSessionDTO createDefault(Long businessId, Long policyId) {

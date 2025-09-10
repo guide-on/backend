@@ -19,4 +19,6 @@ public class BusinessInfoVO {
     private Integer employees; // 상시근로자 수
     private String placeType; // 사업장 형태
     private Date createdAt; // 생성일
+    private Date surveyCompletedAt; // 추가
+
 }

@@ -8,10 +8,7 @@ import com.guideon.security.util.LoginUserProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -86,6 +83,67 @@ public class SurveyController {
             errorResponse.put("success", false);
             errorResponse.put("message", "설문 응답 저장 중 오류가 발생했습니다: " + e.getMessage());
 
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * 설문 상태 확인 API
+     */
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getSurveyStatus() {
+        try {
+            Map<String, Object> authInfo = extractAuthInfo();
+            Long memberId = (Long) authInfo.get("memberId");
+
+            // 설문 완료 상태 확인
+            BusinessInfoDTO businessInfo = surveyService.getBusinessInfoByMemberId(memberId);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+
+            if (businessInfo != null && businessInfo.getSurveyCompletedAt() != null) {
+                // 설문이 완료된 경우
+                response.put("isCompleted", true);
+                response.put("businessId", businessInfo.getBusinessId());
+                response.put("surveyData", businessInfo);
+            } else {
+                // 설문이 미완료인 경우
+                response.put("isCompleted", false);
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "설문 상태 조회 중 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * 새로운 시뮬레이션 시작 (설문 초기화)
+     */
+    @PostMapping("/reset")
+    public ResponseEntity<Map<String, Object>> resetSurvey() {
+        try {
+            Map<String, Object> authInfo = extractAuthInfo();
+            Long memberId = (Long) authInfo.get("memberId");
+
+            // 설문 초기화
+            surveyService.resetSurveyByMemberId(memberId);
+
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("success", true);
+            response.put("message", "새로운 시뮬레이션을 시작할 수 있습니다.");
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new LinkedHashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "설문 초기화 중 오류가 발생했습니다: " + e.getMessage());
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }

@@ -4,6 +4,8 @@ import com.guideon.document.domain.LoanSessionVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 @Mapper
 public interface LoanSessionMapper {
 
@@ -24,4 +26,15 @@ public interface LoanSessionMapper {
                                @Param("requiredDocuments") Integer requiredDocuments,
                                @Param("submittedDocuments") Integer submittedDocuments,
                                @Param("progressPercentage") Double progressPercentage);
+
+    /**
+     * business_id + policy_id로 기존 세션 조회 (자금 시뮬레이션 시작/재개용)
+     */
+    LoanSessionVO selectByBusinessIdAndPolicyId(@Param("businessId") Long businessId,
+                                                @Param("policyId") Long policyId);
+
+    /**
+     * business_id의 모든 세션 조회 (시뮬레이션 목록 조회용)
+     */
+    List<LoanSessionVO> selectAllByBusinessId(Long businessId);
 }
