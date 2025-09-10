@@ -15,17 +15,4 @@ public interface LoanSessionService {
      */
     Map<String, Object> createLoanSession(SessionRequest request);
 
-    /**
-     * 특정 비즈니스의 모든 자금 시뮬레이션 조회
-     * @param businessId 비즈니스 ID
-     * @return 시뮬레이션 목록
-     */
-    List<LoanSessionDTO> getAllSimulationsByBusinessId(Long businessId);
-
-    /**
-     * 세션 상세 정보 조회
-     * @param sessionId 세션 ID
-     * @return 세션 상세 정보
-     */
-    LoanSessionDTO getSessionInfo(Long sessionId);
 }

@@ -5,6 +5,7 @@ import com.guideon.document.dto.BusinessInfoDTO;
 import com.guideon.document.mapper.BusinessInfoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
@@ -54,10 +55,13 @@ public class SurveyServiceImpl implements SurveyService {
     }
 
     /**
-     * 설문 초기화 (새로운 시뮬레이션 시작)
+     * 설문 초기화 - 비즈니스 아이디로 저장된 설문 정보 삭제
      */
     @Override
-    public void resetSurveyByMemberId(Long memberId) {
-        businessInfoMapper.resetSurveyCompleted(memberId);
+    @Transactional
+    public void resetSurveyByBusinessId(Long businessId) {
+
+        businessInfoMapper.deleteByBusinessId(businessId);
+
     }
 }

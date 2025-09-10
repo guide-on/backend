@@ -8,6 +8,9 @@
     <select id="existsBizRegNo" parameterType="string" resultType="int">
         SELECT COUNT(1) FROM business_profile WHERE biz_reg_no = #{bizRegNo}
     </select>
+    <select id="getBusinessProfile" resultType="BusinessProfileVO">
+        SELECT * FROM business_profile WHERE member_id = #{memberId}
+    </select>
 
     <insert id="insert" parameterType="BusinessProfileVO">
         INSERT INTO business_profile (
@@ -20,4 +23,5 @@
                      NOW(), NOW()
                  )
     </insert>
+
 </mapper>
