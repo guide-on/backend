@@ -7,10 +7,7 @@
     <select id="selectStoreSummaryBySessionId" parameterType="map" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
         SELECT 
             session_id as sessionId,
-            owner_id as ownerId,
             business_registration_no as businessRegistrationNo,
-            current_month as currentMonth,
-            summary_year_month as summaryYearMonth,
             total_sales_amount as totalSalesAmount,
             weekday_sales_amount as weekdaySalesAmount,
             weekend_sales_amount as weekendSalesAmount,
@@ -23,8 +20,6 @@
             yoy_growth_rate as yoyGrowthRate,
             sales_cv as salesCv,
             avg_transaction_value as avgTransactionValue,
-            weekday_avg_transaction_value as weekdayAvgTransactionValue,
-            weekend_avg_transaction_value as weekendAvgTransactionValue,
             cash_payment_ratio as cashPaymentRatio,
             card_payment_ratio as cardPaymentRatio,
             revisit_customer_sales_ratio as revisitCustomerSalesRatio,
@@ -52,14 +47,12 @@
             operating_profit as operatingProfit,
             cost_of_goods_sold as costOfGoodsSold,
             total_salary as totalSalary,
-            operating_expenses as operatingExpenses,
             rent_expense as rentExpense,
             other_expenses as otherExpenses,
             operating_profit_ratio as operatingProfitRatio,
             cogs_ratio as cogsRatio,
             salary_ratio as salaryRatio,
             rent_ratio as rentRatio,
-            operating_expense_ratio as operatingExpenseRatio,
             cash_payment_ratio_detail as cashPaymentRatioDetail,
             card_payment_ratio_detail as cardPaymentRatioDetail,
             other_payment_ratio as otherPaymentRatio,
@@ -74,10 +67,7 @@
             tax_payment_integrity as taxPaymentIntegrity
         FROM store_summary
         WHERE session_id = #{sessionId}
-        <if test="summaryYearMonth != null and summaryYearMonth != ''">
-            AND summary_year_month = #{summaryYearMonth}
-        </if>
-        ORDER BY summary_year_month DESC, created_dttm DESC
+        ORDER BY created_dttm DESC
         <if test="limit != null">
             LIMIT #{limit}
         </if>
@@ -91,17 +81,14 @@
         SELECT COUNT(*) > 0
         FROM store_summary
         WHERE session_id = #{sessionId}
-          AND summary_year_month = #{summaryYearMonth}
+          AND business_registration_no = #{businessRegistrationNo}
     </select>
 
-    <!-- 특정 회원의 특정 년월 데이터 조회 -->
+    <!-- 특정 회원의 특정 데이터 조회 -->
     <select id="selectStoreSummary" parameterType="map" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
         SELECT 
             session_id as sessionId,
-            owner_id as ownerId,
             business_registration_no as businessRegistrationNo,
-            current_month as currentMonth,
-            summary_year_month as summaryYearMonth,
             total_sales_amount as totalSalesAmount,
             weekday_sales_amount as weekdaySalesAmount,
             weekend_sales_amount as weekendSalesAmount,
@@ -114,8 +101,6 @@
             yoy_growth_rate as yoyGrowthRate,
             sales_cv as salesCv,
             avg_transaction_value as avgTransactionValue,
-            weekday_avg_transaction_value as weekdayAvgTransactionValue,
-            weekend_avg_transaction_value as weekendAvgTransactionValue,
             cash_payment_ratio as cashPaymentRatio,
             card_payment_ratio as cardPaymentRatio,
             revisit_customer_sales_ratio as revisitCustomerSalesRatio,
@@ -143,14 +128,12 @@
             operating_profit as operatingProfit,
             cost_of_goods_sold as costOfGoodsSold,
             total_salary as totalSalary,
-            operating_expenses as operatingExpenses,
             rent_expense as rentExpense,
             other_expenses as otherExpenses,
             operating_profit_ratio as operatingProfitRatio,
             cogs_ratio as cogsRatio,
             salary_ratio as salaryRatio,
             rent_ratio as rentRatio,
-            operating_expense_ratio as operatingExpenseRatio,
             cash_payment_ratio_detail as cashPaymentRatioDetail,
             card_payment_ratio_detail as cardPaymentRatioDetail,
             other_payment_ratio as otherPaymentRatio,
@@ -165,17 +148,14 @@
             tax_payment_integrity as taxPaymentIntegrity
         FROM store_summary
         WHERE session_id = #{sessionId}
-          AND summary_year_month = #{summaryYearMonth}
+          AND business_registration_no = #{businessRegistrationNo}
     </select>
 
     <!-- 특정 회원의 최신 요약 데이터 조회 -->
     <select id="selectLatestStoreSummary" parameterType="Long" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
         SELECT 
             session_id as sessionId,
-            owner_id as ownerId,
             business_registration_no as businessRegistrationNo,
-            current_month as currentMonth,
-            summary_year_month as summaryYearMonth,
             total_sales_amount as totalSalesAmount,
             weekday_sales_amount as weekdaySalesAmount,
             weekend_sales_amount as weekendSalesAmount,
@@ -188,8 +168,6 @@
             yoy_growth_rate as yoyGrowthRate,
             sales_cv as salesCv,
             avg_transaction_value as avgTransactionValue,
-            weekday_avg_transaction_value as weekdayAvgTransactionValue,
-            weekend_avg_transaction_value as weekendAvgTransactionValue,
             cash_payment_ratio as cashPaymentRatio,
             card_payment_ratio as cardPaymentRatio,
             revisit_customer_sales_ratio as revisitCustomerSalesRatio,
@@ -217,14 +195,12 @@
             operating_profit as operatingProfit,
             cost_of_goods_sold as costOfGoodsSold,
             total_salary as totalSalary,
-            operating_expenses as operatingExpenses,
             rent_expense as rentExpense,
             other_expenses as otherExpenses,
             operating_profit_ratio as operatingProfitRatio,
             cogs_ratio as cogsRatio,
             salary_ratio as salaryRatio,
             rent_ratio as rentRatio,
-            operating_expense_ratio as operatingExpenseRatio,
             cash_payment_ratio_detail as cashPaymentRatioDetail,
             card_payment_ratio_detail as cardPaymentRatioDetail,
             other_payment_ratio as otherPaymentRatio,
@@ -239,7 +215,7 @@
             tax_payment_integrity as taxPaymentIntegrity
         FROM store_summary
         WHERE session_id = #{sessionId}
-        ORDER BY summary_year_month DESC, created_dttm DESC
+        ORDER BY created_dttm DESC
         LIMIT 1
     </select>
 
@@ -247,10 +223,7 @@
     <insert id="insertStoreSummary" parameterType="com.guideon.hybridEvaluation.domain.StoreSummary">
         INSERT INTO store_summary (
             session_id,
-            owner_id,
             business_registration_no,
-            current_month,
-            summary_year_month,
             total_sales_amount,
             weekday_sales_amount,
             weekend_sales_amount,
@@ -263,8 +236,6 @@
             yoy_growth_rate,
             sales_cv,
             avg_transaction_value,
-            weekday_avg_transaction_value,
-            weekend_avg_transaction_value,
             cash_payment_ratio,
             card_payment_ratio,
             revisit_customer_sales_ratio,
@@ -292,14 +263,12 @@
             operating_profit,
             cost_of_goods_sold,
             total_salary,
-            operating_expenses,
             rent_expense,
             other_expenses,
             operating_profit_ratio,
             cogs_ratio,
             salary_ratio,
             rent_ratio,
-            operating_expense_ratio,
             cash_payment_ratio_detail,
             card_payment_ratio_detail,
             other_payment_ratio,
@@ -314,10 +283,7 @@
             tax_payment_integrity
         ) VALUES (
             #{sessionId},
-            #{ownerId},
             #{businessRegistrationNo},
-            #{currentMonth},
-            #{summaryYearMonth},
             #{totalSalesAmount},
             #{weekdaySalesAmount},
             #{weekendSalesAmount},
@@ -330,8 +296,6 @@
             #{yoyGrowthRate},
             #{salesCv},
             #{avgTransactionValue},
-            #{weekdayAvgTransactionValue},
-            #{weekendAvgTransactionValue},
             #{cashPaymentRatio},
             #{cardPaymentRatio},
             #{revisitCustomerSalesRatio},
@@ -359,14 +323,12 @@
             #{operatingProfit},
             #{costOfGoodsSold},
             #{totalSalary},
-            #{operatingExpenses},
             #{rentExpense},
             #{otherExpenses},
             #{operatingProfitRatio},
             #{cogsRatio},
             #{salaryRatio},
             #{rentRatio},
-            #{operatingExpenseRatio},
             #{cashPaymentRatioDetail},
             #{cardPaymentRatioDetail},
             #{otherPaymentRatio},
@@ -397,8 +359,6 @@
             yoy_growth_rate = #{yoyGrowthRate},
             sales_cv = #{salesCv},
             avg_transaction_value = #{avgTransactionValue},
-            weekday_avg_transaction_value = #{weekdayAvgTransactionValue},
-            weekend_avg_transaction_value = #{weekendAvgTransactionValue},
             cash_payment_ratio = #{cashPaymentRatio},
             card_payment_ratio = #{cardPaymentRatio},
             revisit_customer_sales_ratio = #{revisitCustomerSalesRatio},
@@ -406,15 +366,12 @@
             updated_dttm = #{updatedDttm},
             last_updated_dttm = #{lastUpdatedDttm}
         WHERE session_id = #{sessionId}
-          AND summary_year_month = #{summaryYearMonth}
+          AND business_registration_no = #{businessRegistrationNo}
     </update>
 
     <!-- 매장 요약 데이터 전체 수정 (일반 업데이트용) -->
     <update id="updateStoreSummaryFull" parameterType="com.guideon.hybridEvaluation.domain.StoreSummary">
         UPDATE store_summary SET
-            owner_id = #{ownerId},
-            business_registration_no = #{businessRegistrationNo},
-            current_month = #{currentMonth},
             total_sales_amount = #{totalSalesAmount},
             weekday_sales_amount = #{weekdaySalesAmount},
             weekend_sales_amount = #{weekendSalesAmount},
@@ -427,8 +384,6 @@
             yoy_growth_rate = #{yoyGrowthRate},
             sales_cv = #{salesCv},
             avg_transaction_value = #{avgTransactionValue},
-            weekday_avg_transaction_value = #{weekdayAvgTransactionValue},
-            weekend_avg_transaction_value = #{weekendAvgTransactionValue},
             cash_payment_ratio = #{cashPaymentRatio},
             card_payment_ratio = #{cardPaymentRatio},
             revisit_customer_sales_ratio = #{revisitCustomerSalesRatio},
@@ -453,14 +408,12 @@
             operating_profit = #{operatingProfit},
             cost_of_goods_sold = #{costOfGoodsSold},
             total_salary = #{totalSalary},
-            operating_expenses = #{operatingExpenses},
             rent_expense = #{rentExpense},
             other_expenses = #{otherExpenses},
             operating_profit_ratio = #{operatingProfitRatio},
             cogs_ratio = #{cogsRatio},
             salary_ratio = #{salaryRatio},
             rent_ratio = #{rentRatio},
-            operating_expense_ratio = #{operatingExpenseRatio},
             cash_payment_ratio_detail = #{cashPaymentRatioDetail},
             card_payment_ratio_detail = #{cardPaymentRatioDetail},
             other_payment_ratio = #{otherPaymentRatio},
@@ -476,7 +429,186 @@
             updated_dttm = #{updatedDttm},
             last_updated_dttm = #{lastUpdatedDttm}
         WHERE session_id = #{sessionId}
-          AND summary_year_month = #{summaryYearMonth}
+          AND business_registration_no = #{businessRegistrationNo}
     </update>
+
+    <!-- 회원 요약 데이터 목록 조회 -->
+    <select id="selectStoreSummaryList" parameterType="map" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
+        SELECT 
+            session_id as sessionId,
+            business_registration_no as businessRegistrationNo,
+            total_sales_amount as totalSalesAmount,
+            weekday_sales_amount as weekdaySalesAmount,
+            weekend_sales_amount as weekendSalesAmount,
+            lunch_sales_ratio as lunchSalesRatio,
+            dinner_sales_ratio as dinnerSalesRatio,
+            transaction_count as transactionCount,
+            weekday_transaction_count as weekdayTransactionCount,
+            weekend_transaction_count as weekendTransactionCount,
+            mom_growth_rate as momGrowthRate,
+            yoy_growth_rate as yoyGrowthRate,
+            sales_cv as salesCv,
+            avg_transaction_value as avgTransactionValue,
+            cash_payment_ratio as cashPaymentRatio,
+            card_payment_ratio as cardPaymentRatio,
+            revisit_customer_sales_ratio as revisitCustomerSalesRatio,
+            new_customer_ratio as newCustomerRatio,
+            created_dttm as createdDttm,
+            updated_dttm as updatedDttm,
+            last_updated_dttm as lastUpdatedDttm,
+            electricity_usage_kwh as electricityUsageKwh,
+            electricity_bill_amount as electricityBillAmount,
+            gas_usage_m3 as gasUsageM3,
+            water_usage_ton as waterUsageTon,
+            energy_eff_appliance_ratio as energyEffApplianceRatio,
+            participate_energy_eff_support as participateEnergyEffSupport,
+            participate_high_eff_equip_support as participateHighEffEquipSupport,
+            food_waste_kg_per_day as foodWasteKgPerDay,
+            recycle_waste_kg_per_day as recycleWasteKgPerDay,
+            yellow_umbrella_member as yellowUmbrellaMember,
+            yellow_umbrella_months as yellowUmbrellaMonths,
+            yellow_umbrella_amount as yellowUmbrellaAmount,
+            employment_insurance_employees as employmentInsuranceEmployees,
+            customer_review_avg_rating as customerReviewAvgRating,
+            customer_review_positive_ratio as customerReviewPositiveRatio,
+            hygiene_certified as hygieneCertified,
+            origin_price_violation_count as originPriceViolationCount,
+            operating_profit as operatingProfit,
+            cost_of_goods_sold as costOfGoodsSold,
+            total_salary as totalSalary,
+            rent_expense = #{rentExpense},
+            other_expenses = #{otherExpenses},
+            operating_profit_ratio = #{operatingProfitRatio},
+            cogs_ratio = #{cogsRatio},
+            salary_ratio = #{salaryRatio},
+            rent_ratio = #{rentRatio},
+            cash_payment_ratio_detail = #{cashPaymentRatioDetail},
+            card_payment_ratio_detail = #{cardPaymentRatioDetail},
+            other_payment_ratio = #{otherPaymentRatio},
+            weighted_avg_cash_period = #{weightedAvgCashPeriod},
+            cashflow_cv = #{cashflowCv},
+            avg_account_balance = #{avgAccountBalance},
+            min_balance_maintenance_ratio = #{minBalanceMaintenanceRatio},
+            excessive_withdrawal_frequency = #{excessiveWithdrawalFrequency},
+            rent_payment_compliance_rate = #{rentPaymentComplianceRate},
+            utility_payment_compliance_rate = #{utilityPaymentComplianceRate},
+            salary_payment_regularity = #{salaryPaymentRegularity},
+            tax_payment_integrity = #{taxPaymentIntegrity}
+        FROM store_summary
+        WHERE session_id = #{sessionId}
+        <if test="businessRegistrationNo != null and businessRegistrationNo != ''">
+            AND business_registration_no = #{businessRegistrationNo}
+        </if>
+        ORDER BY created_dttm DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 회원 요약 데이터 총 개수 조회 -->
+    <select id="countStoreSummaryList" parameterType="map" resultType="int">
+        SELECT COUNT(*)
+        FROM store_summary
+        WHERE session_id = #{sessionId}
+        <if test="businessRegistrationNo != null and businessRegistrationNo != ''">
+            AND business_registration_no = #{businessRegistrationNo}
+        </if>
+    </select>
+
+    <!-- 특정 회원의 요약 이력 조회 -->
+    <select id="selectStoreSummaryHistory" parameterType="map" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
+        SELECT 
+            session_id as sessionId,
+            business_registration_no as businessRegistrationNo,
+            total_sales_amount as totalSalesAmount,
+            weekday_sales_amount as weekdaySalesAmount,
+            weekend_sales_amount as weekendSalesAmount,
+            lunch_sales_ratio as lunchSalesRatio,
+            dinner_sales_ratio as dinnerSalesRatio,
+            transaction_count as transactionCount,
+            weekday_transaction_count as weekdayTransactionCount,
+            weekend_transaction_count as weekendTransactionCount,
+            mom_growth_rate as momGrowthRate,
+            yoy_growth_rate as yoyGrowthRate,
+            sales_cv as salesCv,
+            avg_transaction_value as avgTransactionValue,
+            cash_payment_ratio as cashPaymentRatio,
+            card_payment_ratio as cardPaymentRatio,
+            revisit_customer_sales_ratio as revisitCustomerSalesRatio,
+            new_customer_ratio as newCustomerRatio,
+            created_dttm as createdDttm,
+            updated_dttm as updatedDttm,
+            last_updated_dttm as lastUpdatedDttm,
+            electricity_usage_kwh as electricityUsageKwh,
+            electricity_bill_amount as electricityBillAmount,
+            gas_usage_m3 as gasUsageM3,
+            water_usage_ton as waterUsageTon,
+            energy_eff_appliance_ratio as energyEffApplianceRatio,
+            participate_energy_eff_support as participateEnergyEffSupport,
+            participate_high_eff_equip_support as participateHighEffEquipSupport,
+            food_waste_kg_per_day as foodWasteKgPerDay,
+            recycle_waste_kg_per_day as recycleWasteKgPerDay,
+            yellow_umbrella_member as yellowUmbrellaMember,
+            yellow_umbrella_months as yellowUmbrellaMonths,
+            yellow_umbrella_amount as yellowUmbrellaAmount,
+            employment_insurance_employees as employmentInsuranceEmployees,
+            customer_review_avg_rating as customerReviewAvgRating,
+            customer_review_positive_ratio as customerReviewPositiveRatio,
+            hygiene_certified as hygieneCertified,
+            origin_price_violation_count as originPriceViolationCount,
+            operating_profit as operatingProfit,
+            cost_of_goods_sold as costOfGoodsSold,
+            total_salary as totalSalary,
+            rent_expense = #{rentExpense},
+            other_expenses = #{otherExpenses},
+            operating_profit_ratio = #{operatingProfitRatio},
+            cogs_ratio = #{cogsRatio},
+            salary_ratio = #{salaryRatio},
+            rent_ratio = #{rentRatio},
+            cash_payment_ratio_detail = #{cashPaymentRatioDetail},
+            card_payment_ratio_detail = #{cardPaymentRatioDetail},
+            other_payment_ratio = #{otherPaymentRatio},
+            weighted_avg_cash_period = #{weightedAvgCashPeriod},
+            cashflow_cv = #{cashflowCv},
+            avg_account_balance = #{avgAccountBalance},
+            min_balance_maintenance_ratio = #{minBalanceMaintenanceRatio},
+            excessive_withdrawal_frequency = #{excessiveWithdrawalFrequency},
+            rent_payment_compliance_rate = #{rentPaymentComplianceRate},
+            utility_payment_compliance_rate = #{utilityPaymentComplianceRate},
+            salary_payment_regularity = #{salaryPaymentRegularity},
+            tax_payment_integrity = #{taxPaymentIntegrity}
+        FROM store_summary
+        WHERE session_id = #{sessionId}
+        ORDER BY created_dttm DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+    <!-- 특정 회원의 요약 이력 개수 조회 -->
+    <select id="countStoreSummaryHistory" parameterType="Long" resultType="int">
+        SELECT COUNT(*)
+        FROM store_summary
+        WHERE session_id = #{sessionId}
+    </select>
+
+    <!-- 회원 요약 데이터 삭제 -->
+    <delete id="deleteStoreSummary" parameterType="map">
+        DELETE FROM store_summary
+        WHERE session_id = #{sessionId}
+          AND business_registration_no = #{businessRegistrationNo}
+    </delete>
+
+    <!-- 특정 회원의 모든 요약 데이터 삭제 -->
+    <delete id="deleteAllStoreSummaryBySessionId" parameterType="Long">
+        DELETE FROM store_summary
+        WHERE session_id = #{sessionId}
+    </delete>
 
 </mapper>

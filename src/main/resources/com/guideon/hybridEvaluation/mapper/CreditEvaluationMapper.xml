@@ -186,7 +186,7 @@
     </delete>
 
     <!-- 특정 사용자의 모든 신용평가 데이터 삭제 -->
-    <delete id="deleteAllCreditEvaluationByMemberId">
+    <delete id="deleteAllCreditEvaluationBySessionId">
         DELETE FROM credit_evaluation
         WHERE session_id = #{sessionId}
     </delete>

@@ -50,7 +50,7 @@ public class CreditScoreCalculationService {
                 creditPeriodScore, creditPatternScore, nonFinancialScore);
         
         return CreditEvaluationResult.builder()
-                .sessionId(Long.valueOf(evaluation.getSessionId()))
+                .sessionId(evaluation.getSessionId())
                 .totalScore(totalScore)
                 .repaymentHistoryScore(repaymentScore)
                 .debtLevelScore(debtLevelScore)

@@ -7,12 +7,9 @@ import java.sql.Timestamp;
 
 @Data
 public class StoreSummary {
-    private Long sessionId;  // 세션 식별자
-    private Long ownerId;   // 사업주 ID
+    private Long sessionId;  // 사용자 식별자
     private String businessRegistrationNo;  // 사업자등록번호
-    private Integer currentMonth;  // 영업개월수
-    private String summaryYearMonth;  // 요약 기준 년월 (예: 2025-08)
-    
+
     // 매출 관련 (매출성장성 및 안정성)
     private BigDecimal totalSalesAmount;  // 월별 매출액 평균
     private BigDecimal weekdaySalesAmount;  // 월별 주중 매출 평균
@@ -26,18 +23,16 @@ public class StoreSummary {
     private BigDecimal yoyGrowthRate;  // 전년 동월 대비 성장률 (%)
     private BigDecimal salesCv;  // 매출 변동성 (일별 매출 표준편차/평균)
     private BigDecimal avgTransactionValue;  // 월 평균 객단가 (매출/결제건수)
-    private BigDecimal weekdayAvgTransactionValue;  // 주중 객단가
-    private BigDecimal weekendAvgTransactionValue;  // 주말 객단가
     private BigDecimal cashPaymentRatio;  // 현금 결제 비율 (%)
     private BigDecimal cardPaymentRatio;  // 카드 결제 비율 (%)
     private BigDecimal revisitCustomerSalesRatio;  // 재방문 고객 매출 비중 (%)
     private BigDecimal newCustomerRatio;  // 신규 고객 비율 (%)
-    
+
     // 생성/수정 일시
     private Timestamp createdDttm;  // 생성일시
     private Timestamp updatedDttm;  // 수정일시
     private Timestamp lastUpdatedDttm;  // 데이터 최종 계산 시점
-    
+
     // ESG 관련
     private BigDecimal electricityUsageKwh;  // 월 전력 사용량 (kWh)
     private BigDecimal electricityBillAmount;  // 월 전기요금 (원)
@@ -56,20 +51,18 @@ public class StoreSummary {
     private BigDecimal customerReviewPositiveRatio;  // 고객 리뷰 긍정 비율 (%)
     private Boolean hygieneCertified;  // 위생등급 인증 여부
     private Integer originPriceViolationCount;  // 원산지·가격 표시 위반 횟수
-    
+
     // 재무 관련
     private BigDecimal operatingProfit;  // 월별 영업이익 (원)
     private BigDecimal costOfGoodsSold;  // 월별 매출원가 (원)
     private BigDecimal totalSalary;  // 월별 급여총액 (원)
-    private BigDecimal operatingExpenses;  // 월별 영업비용 (원)
     private BigDecimal rentExpense;  // 월별 임차료 (원)
     private BigDecimal otherExpenses;  // 월별 기타비용 (원)
     private BigDecimal operatingProfitRatio;  // 영업이익률 (%)
     private BigDecimal cogsRatio;  // 매출원가율 (%)
     private BigDecimal salaryRatio;  // 급여비율 (%)
     private BigDecimal rentRatio;  // 임차료율 (%)
-    private BigDecimal operatingExpenseRatio;  // 영업비용률 (%)
-    
+
     // 현금흐름 건전성 관련
     private BigDecimal cashPaymentRatioDetail;  // 현금 결제 비율 (상세) (%)
     private BigDecimal cardPaymentRatioDetail;  // 카드 결제 비율 (상세) (%)

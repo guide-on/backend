@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 public class StoreSummaryCsvUploadRequest {
     private Long sessionId;
-    private String summaryYearMonth;
+    private String businessRegistrationNo;
     private List<SalesDataRow> salesData;
     
     @Data
@@ -25,8 +25,6 @@ public class StoreSummaryCsvUploadRequest {
         private BigDecimal yoyGrowthRate;
         private BigDecimal salesCv;
         private BigDecimal avgTransactionValue;
-        private BigDecimal weekdayAvgTransactionValue;
-        private BigDecimal weekendAvgTransactionValue;
         private BigDecimal cashPaymentRatio;
         private BigDecimal cardPaymentRatio;
         private BigDecimal revisitCustomerSalesRatio;

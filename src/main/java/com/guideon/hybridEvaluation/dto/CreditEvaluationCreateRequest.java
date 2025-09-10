@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 @Data
 public class CreditEvaluationCreateRequest {
-    private String sessionId;  // session_id 컬럼에 대응
+    private Long sessionId;  // session_id 컬럼에 대응
     
     // 상환이력 (28.4%)
     private Integer totalOverdueCount;
