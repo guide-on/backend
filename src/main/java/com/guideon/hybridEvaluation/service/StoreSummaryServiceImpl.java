@@ -77,7 +77,7 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             validateUpdateRequest(request);
             
             boolean exists = storeSummaryMapper.existsStoreSummary(
-                request.getStoreId(), 
+                request.getMemberId(), 
                 request.getSummaryYearMonth()
             );
             
@@ -112,48 +112,48 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
     }
     
     @Override
-    public CommonResponseDTO<StoreSummaryResponse> getStoreSummary(Long storeId, String summaryYearMonth) {
+    public CommonResponseDTO<StoreSummaryResponse> getStoreSummary(Long memberId, String summaryYearMonth) {
         try {
-            if (storeId == null || summaryYearMonth == null || summaryYearMonth.trim().isEmpty()) {
-                throw new BadRequestException("매장 ID와 요약 년월은 필수 입력값입니다.");
+            if (memberId == null || summaryYearMonth == null || summaryYearMonth.trim().isEmpty()) {
+                throw new BadRequestException("회원 ID와 요약 년월은 필수 입력값입니다.");
             }
             
-            StoreSummary storeSummary = storeSummaryMapper.selectStoreSummary(storeId, summaryYearMonth);
+            StoreSummary storeSummary = storeSummaryMapper.selectStoreSummary(memberId, summaryYearMonth);
             
             if (storeSummary == null) {
-                throw new NotFoundException("해당 매장 요약 데이터를 찾을 수 없습니다.");
+                throw new NotFoundException("해당 회원의 요약 데이터를 찾을 수 없습니다.");
             }
             
             StoreSummaryResponse response = convertToResponse(storeSummary);
             
-            return CommonResponseDTO.success("매장 요약 데이터를 성공적으로 조회했습니다.", response);
+            return CommonResponseDTO.success("회원 요약 데이터를 성공적으로 조회했습니다.", response);
             
         } catch (Exception e) {
-            log.error("매장 요약 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("매장 요약 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("회원 요약 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("회원 요약 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
     @Override
-    public CommonResponseDTO<StoreSummaryResponse> getLatestStoreSummary(Long storeId) {
+    public CommonResponseDTO<StoreSummaryResponse> getLatestStoreSummary(Long memberId) {
         try {
-            if (storeId == null) {
-                throw new BadRequestException("매장 ID는 필수 입력값입니다.");
+            if (memberId == null) {
+                throw new BadRequestException("회원 ID는 필수 입력값입니다.");
             }
             
-            StoreSummary storeSummary = storeSummaryMapper.selectLatestStoreSummary(storeId);
+            StoreSummary storeSummary = storeSummaryMapper.selectLatestStoreSummary(memberId);
             
             if (storeSummary == null) {
-                throw new NotFoundException("해당 매장의 요약 데이터를 찾을 수 없습니다.");
+                throw new NotFoundException("해당 회원의 요약 데이터를 찾을 수 없습니다.");
             }
             
             StoreSummaryResponse response = convertToResponse(storeSummary);
             
-            return CommonResponseDTO.success("최신 매장 요약 데이터를 성공적으로 조회했습니다.", response);
+            return CommonResponseDTO.success("최신 회원 요약 데이터를 성공적으로 조회했습니다.", response);
             
         } catch (Exception e) {
-            log.error("최신 매장 요약 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("최신 매장 요약 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("최신 회원 요약 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("최신 회원 요약 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
@@ -165,7 +165,7 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             int offset = (request.getPage() - 1) * request.getLimit();
             
             List<StoreSummary> storeSummaryList = storeSummaryMapper.selectStoreSummaryList(
-                request.getStoreId(),
+                request.getMemberId(),
                 request.getOwnerId(),
                 request.getBusinessRegistrationNo(),
                 request.getSummaryYearMonth(),
@@ -186,10 +186,10 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
     }
     
     @Override
-    public CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryHistory(Long storeId, Integer page, Integer limit) {
+    public CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryHistory(Long memberId, Integer page, Integer limit) {
         try {
-            if (storeId == null) {
-                throw new BadRequestException("매장 ID는 필수 입력값입니다.");
+            if (memberId == null) {
+                throw new BadRequestException("회원 ID는 필수 입력값입니다.");
             }
             
             if (page == null || page < 1) page = 1;
@@ -197,64 +197,64 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             
             int offset = (page - 1) * limit;
             
-            List<StoreSummary> storeSummaryList = storeSummaryMapper.selectStoreSummaryHistory(storeId, limit, offset);
+            List<StoreSummary> storeSummaryList = storeSummaryMapper.selectStoreSummaryHistory(memberId, limit, offset);
             
             List<StoreSummaryResponse> responseList = storeSummaryList.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
             
-            return CommonResponseDTO.success("매장 요약 이력을 성공적으로 조회했습니다.", responseList);
+            return CommonResponseDTO.success("회원 요약 이력을 성공적으로 조회했습니다.", responseList);
             
         } catch (Exception e) {
-            log.error("매장 요약 이력 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("매장 요약 이력 조회 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("회원 요약 이력 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("회원 요약 이력 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
     @Override
     @Transactional
-    public CommonResponseDTO<Void> deleteStoreSummary(Long storeId, String summaryYearMonth) {
+    public CommonResponseDTO<Void> deleteStoreSummary(Long memberId, String summaryYearMonth) {
         try {
-            if (storeId == null || summaryYearMonth == null || summaryYearMonth.trim().isEmpty()) {
-                throw new BadRequestException("매장 ID와 요약 년월은 필수 입력값입니다.");
+            if (memberId == null || summaryYearMonth == null || summaryYearMonth.trim().isEmpty()) {
+                throw new BadRequestException("회원 ID와 요약 년월은 필수 입력값입니다.");
             }
             
-            boolean exists = storeSummaryMapper.existsStoreSummary(storeId, summaryYearMonth);
+            boolean exists = storeSummaryMapper.existsStoreSummary(memberId, summaryYearMonth);
             
             if (!exists) {
-                throw new NotFoundException("삭제할 매장 요약 데이터를 찾을 수 없습니다.");
+                throw new NotFoundException("삭제할 회원 요약 데이터를 찾을 수 없습니다.");
             }
             
-            int result = storeSummaryMapper.deleteStoreSummary(storeId, summaryYearMonth);
+            int result = storeSummaryMapper.deleteStoreSummary(memberId, summaryYearMonth);
             
             if (result > 0) {
-                return CommonResponseDTO.success("매장 요약 데이터가 성공적으로 삭제되었습니다.", null);
+                return CommonResponseDTO.success("회원 요약 데이터가 성공적으로 삭제되었습니다.", null);
             } else {
-                throw new BadRequestException("매장 요약 데이터 삭제에 실패했습니다.");
+                throw new BadRequestException("회원 요약 데이터 삭제에 실패했습니다.");
             }
             
         } catch (Exception e) {
-            log.error("매장 요약 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("매장 요약 데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("회원 요약 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("회원 요약 데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
     @Override
     @Transactional
-    public CommonResponseDTO<Void> deleteAllStoreSummaryByStoreId(Long storeId) {
+    public CommonResponseDTO<Void> deleteAllStoreSummaryByMemberId(Long memberId) {
         try {
-            if (storeId == null) {
-                throw new BadRequestException("매장 ID는 필수 입력값입니다.");
+            if (memberId == null) {
+                throw new BadRequestException("회원 ID는 필수 입력값입니다.");
             }
             
-            int result = storeSummaryMapper.deleteAllStoreSummaryByStoreId(storeId);
+            int result = storeSummaryMapper.deleteAllStoreSummaryByMemberId(memberId);
             
             return CommonResponseDTO.success(
-                String.format("매장(ID: %d)의 모든 요약 데이터 %d건이 삭제되었습니다.", storeId, result), null);
+                String.format("회원(ID: %d)의 모든 요약 데이터 %d건이 삭제되었습니다.", memberId, result), null);
             
         } catch (Exception e) {
-            log.error("매장의 모든 요약 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("매장의 모든 요약 데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("회원의 모든 요약 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("회원의 모든 요약 데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
@@ -285,13 +285,42 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
         }
     }
     
+    @Override
+    public CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryByMemberId(String summaryYearMonth, Integer page, Integer limit) {
+        try {
+            // 로그인한 사용자의 memberId 가져오기
+            Long loginMemberId = loginUserProvider.getLoginMemberId();
+            if (loginMemberId == null) {
+                throw new BadRequestException("로그인이 필요합니다.");
+            }
+            
+            if (page == null || page < 1) page = 1;
+            if (limit == null || limit < 1) limit = 20;
+            
+            int offset = (page - 1) * limit;
+            
+            List<StoreSummary> storeSummaryList = storeSummaryMapper.selectStoreSummaryByMemberId(
+                loginMemberId, summaryYearMonth, limit, offset);
+            
+            List<StoreSummaryResponse> responseList = storeSummaryList.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+            
+            return CommonResponseDTO.success("현재 사용자의 매장 요약 데이터를 성공적으로 조회했습니다.", responseList);
+            
+        } catch (Exception e) {
+            log.error("현재 사용자의 매장 요약 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("현재 사용자의 매장 요약 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
     private void validateCreateRequest(StoreSummaryCreateRequest request) {
         if (request == null) {
             throw new BadRequestException("요청 데이터가 비어있습니다.");
         }
         
-        if (request.getStoreId() == null) {
-            throw new BadRequestException("매장 ID는 필수 입력값입니다.");
+        if (request.getMemberId() == null) {
+            throw new BadRequestException("회원 ID는 필수 입력값입니다.");
         }
         
         if (request.getOwnerId() == null) {
@@ -306,9 +335,9 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             throw new BadRequestException("요약 년월은 필수 입력값입니다.");
         }
         
-        boolean exists = storeSummaryMapper.existsStoreSummary(request.getStoreId(), request.getSummaryYearMonth());
+        boolean exists = storeSummaryMapper.existsStoreSummary(request.getMemberId(), request.getSummaryYearMonth());
         if (exists) {
-            throw new BadRequestException("이미 존재하는 매장 요약 데이터입니다.");
+            throw new BadRequestException("이미 존재하는 회원 요약 데이터입니다.");
         }
     }
     
@@ -317,8 +346,8 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
             throw new BadRequestException("요청 데이터가 비어있습니다.");
         }
         
-        if (request.getStoreId() == null) {
-            throw new BadRequestException("매장 ID는 필수 입력값입니다.");
+        if (request.getMemberId() == null) {
+            throw new BadRequestException("회원 ID는 필수 입력값입니다.");
         }
         
         if (request.getSummaryYearMonth() == null || request.getSummaryYearMonth().trim().isEmpty()) {

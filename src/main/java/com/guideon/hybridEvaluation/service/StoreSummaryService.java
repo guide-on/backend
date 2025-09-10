@@ -18,14 +18,14 @@ public interface StoreSummaryService {
     CommonResponseDTO<StoreSummaryResponse> updateStoreSummary(StoreSummaryUpdateRequest request);
     
     /**
-     * 특정 매장의 특정 년월 데이터 조회
+     * 특정 회원의 특정 년월 데이터 조회
      */
-    CommonResponseDTO<StoreSummaryResponse> getStoreSummary(Long storeId, String summaryYearMonth);
+    CommonResponseDTO<StoreSummaryResponse> getStoreSummary(Long memberId, String summaryYearMonth);
     
     /**
-     * 특정 매장의 최신 요약 데이터 조회
+     * 특정 회원의 최신 요약 데이터 조회
      */
-    CommonResponseDTO<StoreSummaryResponse> getLatestStoreSummary(Long storeId);
+    CommonResponseDTO<StoreSummaryResponse> getLatestStoreSummary(Long memberId);
     
     /**
      * 매장 요약 데이터 목록 조회 (페이징)
@@ -33,22 +33,27 @@ public interface StoreSummaryService {
     CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryList(StoreSummaryListRequest request);
     
     /**
-     * 특정 매장의 요약 이력 조회
+     * 특정 회원의 요약 이력 조회
      */
-    CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryHistory(Long storeId, Integer page, Integer limit);
+    CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryHistory(Long memberId, Integer page, Integer limit);
     
     /**
-     * 매장 요약 데이터 삭제
+     * 회원 요약 데이터 삭제
      */
-    CommonResponseDTO<Void> deleteStoreSummary(Long storeId, String summaryYearMonth);
+    CommonResponseDTO<Void> deleteStoreSummary(Long memberId, String summaryYearMonth);
     
     /**
-     * 특정 매장의 모든 요약 데이터 삭제
+     * 특정 회원의 모든 요약 데이터 삭제
      */
-    CommonResponseDTO<Void> deleteAllStoreSummaryByStoreId(Long storeId);
+    CommonResponseDTO<Void> deleteAllStoreSummaryByMemberId(Long memberId);
     
     /**
      * 사업주별 매장 요약 데이터 조회
      */
     CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryByOwnerId(Long ownerId, String summaryYearMonth, Integer page, Integer limit);
+    
+    /**
+     * 현재 로그인한 사용자(member_id)의 매장 요약 데이터 조회
+     */
+    CommonResponseDTO<List<StoreSummaryResponse>> getStoreSummaryByMemberId(String summaryYearMonth, Integer page, Integer limit);
 }

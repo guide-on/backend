@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.hybridEvaluation.mapper.StoreSummaryMapper">
+
+    <!-- 회원 ID별 매장 요약 데이터 조회 -->
+    <select id="selectStoreSummaryByMemberId" parameterType="map" resultType="com.guideon.hybridEvaluation.domain.StoreSummary">
+        SELECT 
+            member_id as memberId,
+            owner_id as ownerId,
+            business_registration_no as businessRegistrationNo,
+            industry_code as industryCode,
+            open_date as openDate,
+            summary_year_month as summaryYearMonth,
+            total_sales_amount as totalSalesAmount,
+            weekday_sales_amount as weekdaySalesAmount,
+            weekend_sales_amount as weekendSalesAmount,
+            lunch_sales_ratio as lunchSalesRatio,
+            dinner_sales_ratio as dinnerSalesRatio,
+            transaction_count as transactionCount,
+            weekday_transaction_count as weekdayTransactionCount,
+            weekend_transaction_count as weekendTransactionCount,
+            mom_growth_rate as momGrowthRate,
+            yoy_growth_rate as yoyGrowthRate,
+            sales_cv as salesCv,
+            avg_transaction_value as avgTransactionValue,
+            weekday_avg_transaction_value as weekdayAvgTransactionValue,
+            weekend_avg_transaction_value as weekendAvgTransactionValue,
+            cash_payment_ratio as cashPaymentRatio,
+            card_payment_ratio as cardPaymentRatio,
+            revisit_customer_sales_ratio as revisitCustomerSalesRatio,
+            new_customer_ratio as newCustomerRatio,
+            electricity_usage_kwh as electricityUsageKwh,
+            electricity_bill_amount as electricityBillAmount,
+            gas_usage_m3 as gasUsageM3,
+            water_usage_ton as waterUsageTon,
+            energy_eff_appliance_ratio as energyEffApplianceRatio,
+            participate_energy_eff_support as participateEnergyEffSupport,
+            participate_high_eff_equip_support as participateHighEffEquipSupport,
+            food_waste_kg_per_day as foodWasteKgPerDay,
+            recycle_waste_kg_per_day as recycleWasteKgPerDay,
+            yellow_umbrella_member as yellowUmbrellaMember,
+            yellow_umbrella_months as yellowUmbrellaMonths,
+            yellow_umbrella_amount as yellowUmbrellaAmount,
+            employment_insurance_employees as employmentInsuranceEmployees,
+            customer_review_avg_rating as customerReviewAvgRating,
+            customer_review_positive_ratio as customerReviewPositiveRatio,
+            hygiene_certified as hygieneCertified,
+            origin_price_violation_count as originPriceViolationCount,
+            operating_profit as operatingProfit,
+            cost_of_goods_sold as costOfGoodsSold,
+            total_salary as totalSalary,
+            operating_expenses as operatingExpenses,
+            rent_expense as rentExpense,
+            other_expenses as otherExpenses,
+            operating_profit_ratio as operatingProfitRatio,
+            cogs_ratio as cogsRatio,
+            salary_ratio as salaryRatio,
+            rent_ratio as rentRatio,
+            operating_expense_ratio as operatingExpenseRatio,
+            cash_payment_ratio_detail as cashPaymentRatioDetail,
+            card_payment_ratio_detail as cardPaymentRatioDetail,
+            other_payment_ratio as otherPaymentRatio,
+            weighted_avg_cash_period as weightedAvgCashPeriod,
+            cashflow_cv as cashflowCv,
+            avg_account_balance as avgAccountBalance,
+            min_balance_maintenance_ratio as minBalanceMaintenanceRatio,
+            excessive_withdrawal_frequency as excessiveWithdrawalFrequency,
+            rent_payment_compliance_rate as rentPaymentComplianceRate,
+            utility_payment_compliance_rate as utilityPaymentComplianceRate,
+            salary_payment_regularity as salaryPaymentRegularity,
+            tax_payment_integrity as taxPaymentIntegrity,
+            created_dttm as createdDttm,
+            updated_dttm as updatedDttm,
+            last_updated_dttm as lastUpdatedDttm
+        FROM store_summary
+        WHERE member_id = #{memberId}
+        <if test="summaryYearMonth != null and summaryYearMonth != ''">
+            AND summary_year_month = #{summaryYearMonth}
+        </if>
+        ORDER BY summary_year_month DESC, created_dttm DESC
+        <if test="limit != null">
+            LIMIT #{limit}
+        </if>
+        <if test="offset != null">
+            OFFSET #{offset}
+        </if>
+    </select>
+
+</mapper>
