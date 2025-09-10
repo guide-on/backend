@@ -90,25 +90,4 @@ public class LoanSessionServiceImpl implements LoanSessionService {
         return response;
     }
 
-    @Override
-    public List<LoanSessionDTO> getAllSimulationsByBusinessId(Long businessId) {
-        log.info("비즈니스의 모든 시뮬레이션 조회: businessId={}", businessId);
-
-        List<LoanSessionVO> sessions = loanSessionMapper.selectAllByBusinessId(businessId);
-        return sessions.stream()
-                .map(LoanSessionDTO::fromVO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public LoanSessionDTO getSessionInfo(Long sessionId) {
-        log.info("세션 상세 정보 조회: sessionId={}", sessionId);
-
-        LoanSessionVO session = loanSessionMapper.selectById(sessionId);
-        if (session == null) {
-            throw new IllegalArgumentException("존재하지 않는 세션입니다: " + sessionId);
-        }
-
-        return LoanSessionDTO.fromVO(session);
-    }
 }

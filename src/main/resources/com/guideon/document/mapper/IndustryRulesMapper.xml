@@ -9,7 +9,6 @@
         SELECT
             id,
             industry_code as industryCode,
-            industry_name as industryName,
             is_loan_eligible as isLoanEligible,
             employee_limit as employeeLimit,
             has_special_condition as hasSpecialCondition,

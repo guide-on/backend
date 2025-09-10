@@ -27,7 +27,7 @@ public interface BusinessInfoMapper {
     int updateSurveyCompleted(BusinessInfoVO businessInfoVO);
 
     /**
-     * 설문 초기화
+     * 비즈니스 아이디 삭제
      */
-    int resetSurveyCompleted(Long memberId);
+    void deleteByBusinessId(Long businessId);
 }

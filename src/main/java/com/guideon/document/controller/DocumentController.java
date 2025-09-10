@@ -60,8 +60,22 @@ public class DocumentController {
             @PathVariable Long sessionId,
             @RequestBody MyDataSyncRequest request) {
 
-        Map<String, Object> result = documentService.syncWithMyData(sessionId, request);
-        return ResponseEntity.ok(result);
+        try{
+            // 3초 딜레이로 연동 느낌 연출
+            Thread.sleep(3000);
+
+            Map<String, Object> result = documentService.syncWithMyData(sessionId, request);
+
+            return ResponseEntity.ok(result);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "연동 중 오류가 발생했습니다"
+            ));
+        }
+
     }
 
     /**
