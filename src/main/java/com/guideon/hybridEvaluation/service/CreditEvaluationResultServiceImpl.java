@@ -33,28 +33,28 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
     public CommonResponseDTO<CreditEvaluationResultResponse> createCreditEvaluationResult(
             CreditEvaluationResultCreateRequest request) {
         
-        log.info("신용평가 결과 생성 시작: memberId={}", request.getMemberId());
+        log.info("신용평가 결과 생성 시작: sessionId={}", request.getSessionId());
         
-        // 로그인한 사용자의 memberId 가져오기 및 검증
-        Long loginMemberId = loginUserProvider.getLoginMemberId();
-        if (loginMemberId == null) {
+        // 로그인한 사용자의 sessionId 가져오기 및 검증
+        Long loginSessionId = loginUserProvider.getLoginSessionId();
+        if (loginSessionId == null) {
             throw new BadRequestException("로그인이 필요합니다.");
         }
         
         // 본인의 데이터만 생성할 수 있도록 검증
-        if (!loginMemberId.equals(request.getMemberId())) {
+        if (!loginSessionId.equals(request.getSessionId())) {
             throw new BadRequestException("본인의 데이터만 생성할 수 있습니다.");
         }
         
         // 중복 체크
-        if (creditEvaluationResultMapper.existsCreditEvaluationResult(request.getMemberId())) {
+        if (creditEvaluationResultMapper.existsCreditEvaluationResult(request.getSessionId())) {
             throw new CreditEvaluationValidationException(
-                "이미 해당 사용자의 신용평가 결과가 존재합니다. memberId: " + request.getMemberId());
+                "이미 해당 사용자의 신용평가 결과가 존재합니다. sessionId: " + request.getSessionId());
         }
         
         // Domain 객체 생성
         CreditEvaluationResult creditEvaluationResult = CreditEvaluationResult.builder()
-                .memberId(request.getMemberId())
+                .sessionId(request.getSessionId())
                 .totalScore(request.getTotalScore())
                 .repaymentHistoryScore(request.getRepaymentHistoryScore())
                 .debtLevelScore(request.getDebtLevelScore())
@@ -73,12 +73,12 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
         
         // 저장된 데이터 조회
         CreditEvaluationResult savedResult = creditEvaluationResultMapper
-                .selectCreditEvaluationResult(request.getMemberId());
+                .selectCreditEvaluationResult(request.getSessionId());
         
         CreditEvaluationResultResponse response = convertToResponse(savedResult);
         
-        log.info("신용평가 결과 생성 완료: memberId={}, totalScore={}", 
-                request.getMemberId(), response.getTotalScore());
+        log.info("신용평가 결과 생성 완료: sessionId={}, totalScore={}", 
+                request.getSessionId(), response.getTotalScore());
         
         return CommonResponseDTO.success("신용평가 결과가 성공적으로 생성되었습니다.", response);
     }
@@ -88,28 +88,28 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
     public CommonResponseDTO<CreditEvaluationResultResponse> updateCreditEvaluationResult(
             CreditEvaluationResultUpdateRequest request) {
         
-        log.info("신용평가 결과 수정 시작: memberId={}", request.getMemberId());
+        log.info("신용평가 결과 수정 시작: sessionId={}", request.getSessionId());
         
-        // 로그인한 사용자의 memberId 가져오기 및 검증
-        Long loginMemberId = loginUserProvider.getLoginMemberId();
-        if (loginMemberId == null) {
+        // 로그인한 사용자의 sessionId 가져오기 및 검증
+        Long loginSessionId = loginUserProvider.getLoginSessionId();
+        if (loginSessionId == null) {
             throw new BadRequestException("로그인이 필요합니다.");
         }
         
         // 본인의 데이터만 수정할 수 있도록 검증
-        if (!loginMemberId.equals(request.getMemberId())) {
+        if (!loginSessionId.equals(request.getSessionId())) {
             throw new BadRequestException("본인의 데이터만 수정할 수 있습니다.");
         }
         
         // 존재 여부 체크
-        if (!creditEvaluationResultMapper.existsCreditEvaluationResult(request.getMemberId())) {
+        if (!creditEvaluationResultMapper.existsCreditEvaluationResult(request.getSessionId())) {
             throw new CreditEvaluationNotFoundException(
-                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. memberId: " + request.getMemberId());
+                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. sessionId: " + request.getSessionId());
         }
         
         // Domain 객체 생성
         CreditEvaluationResult creditEvaluationResult = CreditEvaluationResult.builder()
-                .memberId(request.getMemberId())
+                .sessionId(request.getSessionId())
                 .totalScore(request.getTotalScore())
                 .repaymentHistoryScore(request.getRepaymentHistoryScore())
                 .debtLevelScore(request.getDebtLevelScore())
@@ -128,12 +128,12 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
         
         // 수정된 데이터 조회
         CreditEvaluationResult updatedResult = creditEvaluationResultMapper
-                .selectCreditEvaluationResult(request.getMemberId());
+                .selectCreditEvaluationResult(request.getSessionId());
         
         CreditEvaluationResultResponse response = convertToResponse(updatedResult);
         
-        log.info("신용평가 결과 수정 완료: memberId={}, totalScore={}", 
-                request.getMemberId(), response.getTotalScore());
+        log.info("신용평가 결과 수정 완료: sessionId={}, totalScore={}", 
+                request.getSessionId(), response.getTotalScore());
         
         return CommonResponseDTO.success("신용평가 결과가 성공적으로 수정되었습니다.", response);
     }
@@ -143,52 +143,52 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
         
         log.info("현재 로그인한 사용자 신용평가 결과 조회 시작");
         
-        // 로그인한 사용자의 memberId 가져오기
-        Long loginMemberId = loginUserProvider.getLoginMemberId();
-        if (loginMemberId == null) {
+        // 로그인한 사용자의 sessionId 가져오기
+        Long loginSessionId = loginUserProvider.getLoginSessionId();
+        if (loginSessionId == null) {
             throw new BadRequestException("로그인이 필요합니다.");
         }
         
-        CreditEvaluationResult result = creditEvaluationResultMapper.selectCreditEvaluationResult(loginMemberId);
+        CreditEvaluationResult result = creditEvaluationResultMapper.selectCreditEvaluationResult(loginSessionId);
         
         if (result == null) {
             throw new CreditEvaluationNotFoundException(
-                "신용평가 결과를 찾을 수 없습니다. memberId: " + loginMemberId);
+                "신용평가 결과를 찾을 수 없습니다. sessionId: " + loginSessionId);
         }
         
         CreditEvaluationResultResponse response = convertToResponse(result);
         
-        log.info("현재 로그인한 사용자 신용평가 결과 조회 완료: memberId={}, totalScore={}", loginMemberId, response.getTotalScore());
+        log.info("현재 로그인한 사용자 신용평가 결과 조회 완료: sessionId={}, totalScore={}", loginSessionId, response.getTotalScore());
         
         return CommonResponseDTO.success("신용평가 결과 조회가 완료되었습니다.", response);
     }
     
     @Override
-    public CommonResponseDTO<CreditEvaluationResultResponse> getCreditEvaluationResult(Long memberId) {
+    public CommonResponseDTO<CreditEvaluationResultResponse> getCreditEvaluationResult(Long sessionId) {
         
-        log.info("신용평가 결과 조회 시작: memberId={}", memberId);
+        log.info("신용평가 결과 조회 시작: sessionId={}", sessionId);
         
-        // 로그인한 사용자의 memberId 가져오기 및 검증
-        Long loginMemberId = loginUserProvider.getLoginMemberId();
-        if (loginMemberId == null) {
+        // 로그인한 사용자의 sessionId 가져오기 및 검증
+        Long loginSessionId = loginUserProvider.getLoginSessionId();
+        if (loginSessionId == null) {
             throw new BadRequestException("로그인이 필요합니다.");
         }
         
         // 본인의 데이터만 조회할 수 있도록 검증
-        if (!loginMemberId.equals(memberId)) {
+        if (!loginSessionId.equals(sessionId)) {
             throw new BadRequestException("본인의 데이터만 조회할 수 있습니다.");
         }
         
-        CreditEvaluationResult result = creditEvaluationResultMapper.selectCreditEvaluationResult(memberId);
+        CreditEvaluationResult result = creditEvaluationResultMapper.selectCreditEvaluationResult(sessionId);
         
         if (result == null) {
             throw new CreditEvaluationNotFoundException(
-                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. memberId: " + memberId);
+                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. sessionId: " + sessionId);
         }
         
         CreditEvaluationResultResponse response = convertToResponse(result);
         
-        log.info("신용평가 결과 조회 완료: memberId={}, totalScore={}", memberId, response.getTotalScore());
+        log.info("신용평가 결과 조회 완료: sessionId={}, totalScore={}", sessionId, response.getTotalScore());
         
         return CommonResponseDTO.success("신용평가 결과 조회가 완료되었습니다.", response);
     }
@@ -235,35 +235,35 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
     
     @Override
     @Transactional
-    public CommonResponseDTO<Void> deleteCreditEvaluationResult(Long memberId) {
+    public CommonResponseDTO<Void> deleteCreditEvaluationResult(Long sessionId) {
         
-        log.info("신용평가 결과 삭제 시작: memberId={}", memberId);
+        log.info("신용평가 결과 삭제 시작: sessionId={}", sessionId);
         
-        // 로그인한 사용자의 memberId 가져오기 및 검증
-        Long loginMemberId = loginUserProvider.getLoginMemberId();
-        if (loginMemberId == null) {
+        // 로그인한 사용자의 sessionId 가져오기 및 검증
+        Long loginSessionId = loginUserProvider.getLoginSessionId();
+        if (loginSessionId == null) {
             throw new BadRequestException("로그인이 필요합니다.");
         }
         
         // 본인의 데이터만 삭제할 수 있도록 검증
-        if (!loginMemberId.equals(memberId)) {
+        if (!loginSessionId.equals(sessionId)) {
             throw new BadRequestException("본인의 데이터만 삭제할 수 있습니다.");
         }
         
         // 존재 여부 체크
-        if (!creditEvaluationResultMapper.existsCreditEvaluationResult(memberId)) {
+        if (!creditEvaluationResultMapper.existsCreditEvaluationResult(sessionId)) {
             throw new CreditEvaluationNotFoundException(
-                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. memberId: " + memberId);
+                "해당 사용자의 신용평가 결과를 찾을 수 없습니다. sessionId: " + sessionId);
         }
         
         // 데이터베이스 삭제
-        int deletedRows = creditEvaluationResultMapper.deleteCreditEvaluationResult(memberId);
+        int deletedRows = creditEvaluationResultMapper.deleteCreditEvaluationResult(sessionId);
         
         if (deletedRows == 0) {
             throw new CreditEvaluationValidationException("신용평가 결과 삭제에 실패했습니다.");
         }
         
-        log.info("신용평가 결과 삭제 완료: memberId={}", memberId);
+        log.info("신용평가 결과 삭제 완료: sessionId={}", sessionId);
         
         return CommonResponseDTO.success("신용평가 결과가 성공적으로 삭제되었습니다.");
     }
@@ -273,7 +273,7 @@ public class CreditEvaluationResultServiceImpl implements CreditEvaluationResult
      */
     private CreditEvaluationResultResponse convertToResponse(CreditEvaluationResult result) {
         return CreditEvaluationResultResponse.builder()
-                .memberId(result.getMemberId())
+                .sessionId(result.getSessionId())
                 .totalScore(result.getTotalScore())
                 .repaymentHistoryScore(result.getRepaymentHistoryScore())
                 .debtLevelScore(result.getDebtLevelScore())

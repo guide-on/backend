@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreditEvaluationResultResponse {
     
-    private Long memberId;                      // 사용자 고유 식별자 (member_id 컬럼)
+    private Long sessionId;                      // 사용자 고유 식별자 (session_id 컬럼)
     private Integer totalScore;                 // 우리 서비스 최종 신용점수
     private Integer repaymentHistoryScore;      // 상환이력 항목 점수
     private Integer debtLevelScore;             // 부채수준 항목 점수

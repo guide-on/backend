@@ -3,16 +3,14 @@ package com.guideon.hybridEvaluation.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.Timestamp;
 
 @Data
 public class StoreSummaryResponse {
-    private Long memberId;
+    private Long sessionId;
     private Long ownerId;
     private String businessRegistrationNo;
-    private String industryCode;
-    private Date openDate;
+    private Integer currentMonth;
     private String summaryYearMonth;
     
     // 매출 관련 (매출성장성 및 안정성)
