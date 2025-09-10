@@ -24,14 +24,6 @@
         ORDER BY id
     </select>
 
-    <!-- 서류 업로드 상태 업데이트 -->
-    <update id="updateUploadStatus" parameterType="DocumentUploadsVO">
-        UPDATE document_uploads
-        SET upload_status = #{uploadStatus},
-            uploaded_at = #{uploadedAt}
-        WHERE id = #{id}
-    </update>
-
     <!-- 세션별 마이데이터 연동 가능한 서류 ID 조회 -->
     <select id="selectMydataEligibleIds" parameterType="Long" resultType="Long">
         SELECT id

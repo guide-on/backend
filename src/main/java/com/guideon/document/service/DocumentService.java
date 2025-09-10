@@ -9,16 +9,9 @@ import java.util.*;
 public interface DocumentService {
 
     /**
-     * 대출 세션 생성
-     * @param request businessId, policyId 포함
-     * @return 생성된 세션 정보
-     */
-    Map<String, Object> createLoanSession(SessionRequest request);
-
-    /**
-     * 세션별 필요 서류 목록 조회
+     * 세션별 필요 서류 목록 저장
      * @param sessionId 세션 아이디
-     * @return 해당 세션에 대한 필요 서류
+     * @return 해당 세션에 대한 필요 서류 저장 성공 알림
      */
     Map<String, Object> getRequiredDocuments(Long sessionId);
 
@@ -31,7 +24,7 @@ public interface DocumentService {
     Map<String, Object> syncWithMyData(Long sessionId, MyDataSyncRequest request);
 
     /**
-     * 서류 상태 조회
+     * 세션별 필요 서류 상태 조회
      * @param sessionId 세션 아이디
      * @return 서류 제출 상태
      */

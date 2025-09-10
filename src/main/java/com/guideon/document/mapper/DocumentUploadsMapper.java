@@ -20,11 +20,6 @@ public interface DocumentUploadsMapper {
     List<DocumentUploadsVO> selectBySessionId(Long sessionId);
 
     /**
-     * 서류 업로드 상태 업데이트
-     */
-    void updateUploadStatus(DocumentUploadsVO documentUpload);
-
-    /**
      * 세션별 마이데이터 연동 가능한 서류 ID 조회
      */
     List<Long> selectMydataEligibleIds(Long sessionId);
@@ -40,7 +35,7 @@ public interface DocumentUploadsMapper {
     DocumentUploadsVO selectById(Long documentId);
 
     /**
-     * 파일 업로드 정보 업데이트
+     * 서류 파일 업로드 정보 업데이트
      */
     void updateFileInfo(@Param("documentId") Long documentId,
                         @Param("originalFilename") String originalFilename,

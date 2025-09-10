@@ -5,27 +5,42 @@
 
 <mapper namespace="com.guideon.document.mapper.BusinessInfoMapper">
 
-    <!-- 사업체 정보 저장 -->
-    <insert id="insert" parameterType="BusinessInfoVO"
-            useGeneratedKeys="true" keyProperty="businessId">
+    <!-- 기존 insert문에 survey_completed_at 추가 -->
+    <insert id="insert" parameterType="BusinessInfoVO" useGeneratedKeys="true" keyProperty="businessId">
         INSERT INTO user_business_info (
-            member_id,
-            loan_purpose,
-            industry_code,
-            business_period,
-            revenue,
-            employees,
-            place_type
+            member_id, loan_purpose, industry_code, business_period,
+            revenue, employees, place_type, survey_completed_at
         ) VALUES (
-                     #{memberId},
-                     #{loanPurpose},
-                     #{industryCode},
-                     #{businessPeriod},
-                     #{revenue},
-                     #{employees},
-                     #{placeType}
+                     #{memberId}, #{loanPurpose}, #{industryCode}, #{businessPeriod},
+                     #{revenue}, #{employees}, #{placeType}, #{surveyCompletedAt}
                  )
     </insert>
+
+    <!-- 회원별 사업자 정보 조회 (설문 상태 확인용) -->
+    <select id="selectByMemberId" parameterType="Long" resultType="BusinessInfoVO">
+        SELECT
+            business_id, member_id, loan_purpose, industry_code,
+            business_period, revenue, employees, place_type,
+            created_at, survey_completed_at
+        FROM user_business_info
+        WHERE member_id = #{memberId}
+        ORDER BY created_at DESC
+            LIMIT 1
+    </select>
+
+    <!-- 설문 완료 시각 업데이트 -->
+    <update id="updateSurveyCompleted" parameterType="BusinessInfoVO">
+        UPDATE user_business_info
+        SET survey_completed_at = #{surveyCompletedAt}
+        WHERE business_id = #{businessId}
+    </update>
+
+    <!-- 설문 초기화 (새로운 시뮬레이션 시작) -->
+    <update id="resetSurveyCompleted" parameterType="Long">
+        UPDATE user_business_info
+        SET survey_completed_at = NULL
+        WHERE member_id = #{memberId}
+    </update>
 
     <!-- ID로 조회 -->
     <select id="selectByBusinessId" parameterType="long" resultType="BusinessInfoVO">
@@ -42,21 +57,4 @@
         FROM user_business_info
         WHERE business_id = #{businessId}
     </select>
-
-    <!-- ID로 조회 -->
-    <select id="selectByMemberId" parameterType="long" resultType="BusinessInfoVO">
-        SELECT
-            business_id as businessId,
-            member_id as memberId,
-            loan_purpose as loanPurpose,
-            industry_code as industryCode,
-            business_period as businessPeriod,
-            revenue,
-            employees,
-            place_type as placeType,
-            created_at as createdAt
-        FROM user_business_info
-        WHERE member_id = #{memberId}
-    </select>
-
 </mapper>
