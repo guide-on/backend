@@ -139,7 +139,7 @@ public class CommunityController {
     @ApiOperation(value = "댓글 작성", notes = "로그인 사용자가 댓글을 작성합니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "postId", value = "게시글 ID", required = true, paramType = "path", dataType = "long"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> createComment(
             @PathVariable Long postId,
@@ -156,7 +156,7 @@ public class CommunityController {
     @ApiOperation(value = "댓글 수정", notes = "로그인 사용자가 자신의 댓글을 수정합니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "commentId", value = "댓글 ID", required = true, paramType = "path", dataType = "long"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> updateComment(
             @PathVariable Long commentId,
@@ -173,7 +173,7 @@ public class CommunityController {
     @ApiOperation(value = "댓글 삭제", notes = "로그인 사용자가 자신의 댓글을 삭제합니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "commentId", value = "댓글 ID", required = true, paramType = "path", dataType = "long"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> deleteComment(@PathVariable Long commentId) {
         Long memberId = currentMemberIdOrThrow();
@@ -188,7 +188,7 @@ public class CommunityController {
     @ApiOperation(value = "좋아요 토글", notes = "로그인 사용자가 좋아요/좋아요취소를 토글합니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "postId", value = "게시글 ID", required = true, paramType = "path", dataType = "long"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> toggleLike(@PathVariable Long postId) {
         Long memberId = currentMemberIdOrThrow();
@@ -200,7 +200,7 @@ public class CommunityController {
     @ApiOperation(value = "북마크 토글", notes = "로그인 사용자가 북마크/해제를 토글합니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "postId", value = "게시글 ID", required = true, paramType = "path", dataType = "long"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> toggleBookmark(@PathVariable Long postId) {
         Long memberId = currentMemberIdOrThrow();
@@ -224,7 +224,7 @@ public class CommunityController {
     @ApiOperation(value = "추천글 조회", notes = "로그인 사용자의 관심/행동 기반 추천 글을 가져옵니다.")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "size", value = "목록 크기", defaultValue = "10", paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: ACCESS_TOKEN=eyJ...)", required = true, paramType = "header", dataType = "string")
+            @ApiImplicitParam(name = "Cookie", value = "로그인 쿠키 (예: accessToken=eyJ...)", required = true, paramType = "header", dataType = "string")
     })
     public CommonResponseDTO<Map<String, Object>> recommend(@RequestParam(defaultValue = "10") int size) {
         Long memberId = currentMemberIdOrThrow();
