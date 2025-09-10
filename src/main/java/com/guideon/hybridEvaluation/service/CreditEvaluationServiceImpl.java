@@ -28,6 +28,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
     private final CreditEvaluationMapper creditEvaluationMapper;
     private final CreditEvaluationResultMapper creditEvaluationResultMapper;
     private final CreditScoreCalculationService creditScoreCalculationService;
+    private final StoreSummaryService storeSummaryService;
     
     @Override
     @Transactional
@@ -132,6 +133,95 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
             log.error("신용평가 데이터 목록 조회 중 오류 발생: {}", e.getMessage(), e);
             throw new BadRequestException("신용평가 데이터 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+    
+    @Override
+    @Transactional
+    public CommonResponseDTO<String> initializeHybridEvaluation(Long sessionId) {
+        try {
+            log.info("하이브리드 평가 데이터 초기화 시작: sessionId={}", sessionId);
+            
+            // 1. store_summary 테이블에 기본값 데이터 생성
+            createDefaultStoreSummary(sessionId);
+            
+            // 2. credit_evaluation 테이블에 기본값 데이터 생성
+            createDefaultCreditEvaluation(sessionId);
+            
+            log.info("하이브리드 평가 데이터 초기화 완료: sessionId={}", sessionId);
+            
+            return CommonResponseDTO.success(
+                "하이브리드 평가 데이터가 성공적으로 초기화되었습니다.",
+                "초기화 완료"
+            );
+            
+        } catch (Exception e) {
+            log.error("하이브리드 평가 데이터 초기화 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("하이브리드 평가 데이터 초기화 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * store_summary 테이블에 기본값 데이터 생성
+     */
+    private void createDefaultStoreSummary(Long sessionId) {
+        log.info("store_summary 기본값 데이터 생성: sessionId={}", sessionId);
+        storeSummaryService.createDefaultStoreSummary(sessionId);
+    }
+    
+    /**
+     * credit_evaluation 테이블에 기본값 데이터 생성
+     */
+    private void createDefaultCreditEvaluation(Long sessionId) {
+        log.info("credit_evaluation 기본값 데이터 생성: sessionId={}", sessionId);
+        
+        // 기본값으로 CreditEvaluation 객체 생성
+        CreditEvaluation creditEvaluation = new CreditEvaluation();
+        creditEvaluation.setSessionId(sessionId);
+        creditEvaluation.setEvaluationDate(new Timestamp(System.currentTimeMillis()));
+        
+        // 상환이력 (28.4%) - 기본값 0으로 설정
+        creditEvaluation.setTotalOverdueCount(0);
+        creditEvaluation.setRecent12mOverdueCount(0);
+        creditEvaluation.setMaxOverdueDays(0);
+        creditEvaluation.setCurrentOverdueAmount(new java.math.BigDecimal("0"));
+        creditEvaluation.setLoanDefaultHistory(0);
+        creditEvaluation.setCreditCardDelayRate(new java.math.BigDecimal("0"));
+        creditEvaluation.setPaymentConsistencyScore(0);
+        
+        // 부채수준 (24.5%) - 기본값 0으로 설정
+        creditEvaluation.setTotalDebtAmount(new java.math.BigDecimal("0"));
+        creditEvaluation.setMonthlyIncome(new java.math.BigDecimal("0"));
+        creditEvaluation.setDebtToIncomeRatio(new java.math.BigDecimal("0"));
+        creditEvaluation.setCreditCardUtilizationRate(new java.math.BigDecimal("0"));
+        creditEvaluation.setSecuredVsUnsecuredRatio(new java.math.BigDecimal("0"));
+        
+        // 신용거래기간 (12.3%) - 기본값 0으로 설정
+        creditEvaluation.setCreditHistoryMonths(0);
+        creditEvaluation.setOldestCreditAccountMonths(0);
+        creditEvaluation.setNewCreditInquiries6m(0);
+        
+        // 신용형태 (27.5%) - 기본값 0으로 설정
+        creditEvaluation.setActiveCreditCardCount(0);
+        creditEvaluation.setTotalCreditLimit(new java.math.BigDecimal("0"));
+        creditEvaluation.setLoanTypeDiversity(0);
+        creditEvaluation.setFinancialInstitutionCount(0);
+        
+        // 비금융/마이데이터 (7.3%) - 기본값 0으로 설정
+        creditEvaluation.setAlternativeCreditScore(0);
+        
+        // 메타데이터 설정
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        creditEvaluation.setCreatedAt(now);
+        creditEvaluation.setUpdatedAt(now);
+        
+        // 데이터베이스에 저장
+        int result = creditEvaluationMapper.insertCreditEvaluation(creditEvaluation);
+        
+        if (result != 1) {
+            throw new BadRequestException("credit_evaluation 테이블 데이터 생성에 실패했습니다.");
+        }
+        
+        log.info("credit_evaluation 기본값 데이터 생성 완료: sessionId={}", sessionId);
     }
     
     /**

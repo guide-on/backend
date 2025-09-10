@@ -43,6 +43,19 @@ public class CreditEvaluationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
     
+    @PostMapping("/initialize/{sessionId}")
+    @ApiOperation(value = "하이브리드 평가 데이터 초기화", notes = "sessionId에 대해 store_summary와 credit_evaluation 테이블에 기본값으로 데이터를 생성합니다.")
+    public ResponseEntity<CommonResponseDTO<String>> initializeHybridEvaluation(
+            @ApiParam(value = "세션 ID", required = true) @PathVariable Long sessionId) {
+        
+        log.info("하이브리드 평가 데이터 초기화 요청: sessionId={}", sessionId);
+        
+        CommonResponseDTO<String> response = 
+            creditEvaluationService.initializeHybridEvaluation(sessionId);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
     @GetMapping
     @ApiOperation(value = "신용평가 데이터 목록 조회", notes = "조건에 따른 신용평가 데이터 목록을 조회합니다.")
     public ResponseEntity<CommonResponseDTO<List<CreditEvaluationResponse>>> getCreditEvaluationList(
