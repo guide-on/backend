@@ -17,4 +17,9 @@ public interface CreditEvaluationService {
      * 신용평가 데이터 목록 조회 (페이징)
      */
     CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationList(CreditEvaluationListRequest request);
+    
+    /**
+     * 하이브리드 평가 데이터 초기화 (store_summary, credit_evaluation 테이블에 기본값 생성)
+     */
+    CommonResponseDTO<String> initializeHybridEvaluation(Long sessionId);
 }

@@ -13,6 +13,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,44 +57,61 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
     @Transactional
     public CommonResponseDTO<StoreSummaryResponse> uploadCsvData(StoreSummaryCsvUploadRequest request) {
         try {
+            log.info("CSV 업로드 요청 처리 시작: {}", request);
             validateCsvUploadRequest(request);
             
             // 요청에서 받은 sessionId 사용
             Long actualSessionId = request.getSessionId();
             if (actualSessionId == null) {
+                log.error("세션 ID가 null입니다.");
                 throw new BadRequestException("세션 ID는 필수 값입니다.");
             }
             
+            log.info("세션 ID 검증 완료: {}", actualSessionId);
+            
             // CSV 데이터가 여러 행인 경우 첫 번째 행을 기준으로 업데이트
             // 실제로는 모든 데이터를 집계하거나 평균을 내는 로직이 필요할 수 있음
+            log.info("CSV 데이터 행 수: {}", request.getSalesData().size());
             StoreSummaryCsvUploadRequest.SalesDataRow firstRow = request.getSalesData().get(0);
+            log.info("첫 번째 CSV 행 데이터: {}", firstRow);
             
             // 요청된 사업자등록번호의 데이터 조회
+            log.info("기존 데이터 조회 시작 - sessionId: {}, businessRegistrationNo: {}", actualSessionId, request.getBusinessRegistrationNo());
             StoreSummary existingStoreSummary = storeSummaryMapper.selectStoreSummary(actualSessionId, request.getBusinessRegistrationNo());
+            log.info("기존 데이터 조회 결과: {}", existingStoreSummary != null ? "존재함" : "없음");
             
             StoreSummary storeSummary;
             if (existingStoreSummary == null) {
                 // 해당 사업자등록번호 데이터가 없으면 기본 데이터를 생성
+                log.info("기본 StoreSummary 객체 생성 중...");
                 storeSummary = createDefaultStoreSummary(actualSessionId, request.getBusinessRegistrationNo());
+                log.info("생성된 기본 StoreSummary: {}", storeSummary);
                 
                 // 새로운 기본 데이터 저장
+                log.info("데이터베이스 INSERT 시작...");
                 int insertResult = storeSummaryMapper.insertStoreSummary(storeSummary);
+                log.info("INSERT 결과: {}", insertResult);
                 if (insertResult == 0) {
                     throw new BadRequestException("기본 데이터 생성에 실패했습니다.");
                 }
                 log.info("세션 ID {} - {} 사업자등록번호에 대한 기본 매장 요약 데이터를 생성했습니다.", actualSessionId, request.getBusinessRegistrationNo());
             } else {
                 // 기존 데이터 사용 (다른 필드들은 유지)
+                log.info("기존 데이터 사용");
                 storeSummary = existingStoreSummary;
             }
             
             // CSV 데이터로 매출 관련 필드만 업데이트
+            log.info("CSV 데이터로 업데이트 시작...");
             updateStoreSummaryWithCsvData(storeSummary, firstRow);
             storeSummary.setLastUpdatedDttm(new Timestamp(System.currentTimeMillis()));
             storeSummary.setUpdatedDttm(new Timestamp(System.currentTimeMillis()));
+            log.info("업데이트된 StoreSummary: {}", storeSummary);
             
             // 기존 데이터의 sessionId와 businessRegistrationNo를 사용하여 업데이트
+            log.info("데이터베이스 UPDATE 시작...");
             int updateResult = storeSummaryMapper.updateStoreSummary(storeSummary);
+            log.info("UPDATE 결과: {}", updateResult);
             if (updateResult == 0) {
                 throw new BadRequestException("데이터 업데이트에 실패했습니다.");
             }
@@ -105,6 +123,107 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
         } catch (Exception e) {
             log.error("CSV 데이터 업로드 중 오류 발생: {}", e.getMessage(), e);
             throw new BadRequestException("CSV 데이터 업로드 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void createDefaultStoreSummary(Long sessionId) {
+        try {
+            log.info("store_summary 기본값 데이터 생성 시작: sessionId={}", sessionId);
+            
+            // 이미 존재하는지 확인
+            List<StoreSummary> existingData = storeSummaryMapper.selectStoreSummaryBySessionId(sessionId, 1, 0);
+            if (!existingData.isEmpty()) {
+                log.info("store_summary 데이터가 이미 존재합니다: sessionId={}", sessionId);
+                return;
+            }
+            
+            // 기본값으로 StoreSummary 객체 생성
+            StoreSummary storeSummary = new StoreSummary();
+            storeSummary.setSessionId(sessionId);
+            storeSummary.setBusinessRegistrationNo("000-00-00000"); // 기본 사업자등록번호
+            
+            // 매출 관련 기본값 0으로 설정
+            storeSummary.setTotalSalesAmount(new java.math.BigDecimal("0"));
+            storeSummary.setWeekdaySalesAmount(new java.math.BigDecimal("0"));
+            storeSummary.setWeekendSalesAmount(new java.math.BigDecimal("0"));
+            storeSummary.setLunchSalesRatio(new java.math.BigDecimal("0"));
+            storeSummary.setDinnerSalesRatio(new java.math.BigDecimal("0"));
+            storeSummary.setTransactionCount(0);
+            storeSummary.setWeekdayTransactionCount(0);
+            storeSummary.setWeekendTransactionCount(0);
+            storeSummary.setMomGrowthRate(new java.math.BigDecimal("0"));
+            storeSummary.setYoyGrowthRate(new java.math.BigDecimal("0"));
+            storeSummary.setSalesCv(new java.math.BigDecimal("0"));
+            storeSummary.setAvgTransactionValue(new java.math.BigDecimal("0"));
+            storeSummary.setCashPaymentRatio(new java.math.BigDecimal("0"));
+            storeSummary.setCardPaymentRatio(new java.math.BigDecimal("0"));
+            storeSummary.setRevisitCustomerSalesRatio(new java.math.BigDecimal("0"));
+            storeSummary.setNewCustomerRatio(new java.math.BigDecimal("0"));
+            
+            // ESG 관련 기본값 0으로 설정
+            storeSummary.setElectricityUsageKwh(new java.math.BigDecimal("0"));
+            storeSummary.setElectricityBillAmount(new java.math.BigDecimal("0"));
+            storeSummary.setGasUsageM3(new java.math.BigDecimal("0"));
+            storeSummary.setWaterUsageTon(new java.math.BigDecimal("0"));
+            storeSummary.setEnergyEffApplianceRatio(new java.math.BigDecimal("0"));
+            storeSummary.setParticipateEnergyEffSupport(false);
+            storeSummary.setParticipateHighEffEquipSupport(false);
+            storeSummary.setFoodWasteKgPerDay(new java.math.BigDecimal("0"));
+            storeSummary.setRecycleWasteKgPerDay(new java.math.BigDecimal("0"));
+            storeSummary.setYellowUmbrellaMember(false);
+            storeSummary.setYellowUmbrellaMonths(0);
+            storeSummary.setYellowUmbrellaAmount(new java.math.BigDecimal("0"));
+            storeSummary.setEmploymentInsuranceEmployees(0);
+            storeSummary.setCustomerReviewAvgRating(new java.math.BigDecimal("0"));
+            storeSummary.setCustomerReviewPositiveRatio(new java.math.BigDecimal("0"));
+            storeSummary.setHygieneCertified(false);
+            storeSummary.setOriginPriceViolationCount(0);
+            
+            // 재무 관련 기본값 0으로 설정
+            storeSummary.setOperatingProfit(new java.math.BigDecimal("0"));
+            storeSummary.setCostOfGoodsSold(new java.math.BigDecimal("0"));
+            storeSummary.setTotalSalary(new java.math.BigDecimal("0"));
+            storeSummary.setRentExpense(new java.math.BigDecimal("0"));
+            storeSummary.setOtherExpenses(new java.math.BigDecimal("0"));
+            storeSummary.setOperatingProfitRatio(new java.math.BigDecimal("0"));
+            storeSummary.setCogsRatio(new java.math.BigDecimal("0"));
+            storeSummary.setSalaryRatio(new java.math.BigDecimal("0"));
+            storeSummary.setRentRatio(new java.math.BigDecimal("0"));
+            
+            // 현금흐름 관련 기본값 0으로 설정
+            storeSummary.setCashPaymentRatioDetail(new java.math.BigDecimal("0"));
+            storeSummary.setCardPaymentRatioDetail(new java.math.BigDecimal("0"));
+            storeSummary.setOtherPaymentRatio(new java.math.BigDecimal("0"));
+            storeSummary.setWeightedAvgCashPeriod(new java.math.BigDecimal("0"));
+            storeSummary.setCashflowCv(new java.math.BigDecimal("0"));
+            storeSummary.setAvgAccountBalance(new java.math.BigDecimal("0"));
+            storeSummary.setMinBalanceMaintenanceRatio(new java.math.BigDecimal("0"));
+            storeSummary.setExcessiveWithdrawalFrequency(new java.math.BigDecimal("0"));
+            storeSummary.setRentPaymentComplianceRate(new java.math.BigDecimal("0"));
+            storeSummary.setUtilityPaymentComplianceRate(new java.math.BigDecimal("0"));
+            storeSummary.setSalaryPaymentRegularity(new java.math.BigDecimal("0"));
+            storeSummary.setTaxPaymentIntegrity(new java.math.BigDecimal("0"));
+            
+            // 메타데이터 설정
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            storeSummary.setCreatedDttm(now);
+            storeSummary.setUpdatedDttm(now);
+            storeSummary.setLastUpdatedDttm(now);
+            
+            // 데이터베이스에 저장
+            int result = storeSummaryMapper.insertStoreSummary(storeSummary);
+            
+            if (result != 1) {
+                throw new BadRequestException("store_summary 테이블 데이터 생성에 실패했습니다.");
+            }
+            
+            log.info("store_summary 기본값 데이터 생성 완료: sessionId={}", sessionId);
+            
+        } catch (Exception e) {
+            log.error("store_summary 기본값 데이터 생성 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("store_summary 기본값 데이터 생성 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
@@ -127,22 +246,33 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
     }
     
     private void updateStoreSummaryWithCsvData(StoreSummary storeSummary, StoreSummaryCsvUploadRequest.SalesDataRow salesData) {
-        storeSummary.setTotalSalesAmount(salesData.getTotalSalesAmount());
-        storeSummary.setWeekdaySalesAmount(salesData.getWeekdaySalesAmount());
-        storeSummary.setWeekendSalesAmount(salesData.getWeekendSalesAmount());
-        storeSummary.setLunchSalesRatio(salesData.getLunchSalesRatio());
-        storeSummary.setDinnerSalesRatio(salesData.getDinnerSalesRatio());
-        storeSummary.setTransactionCount(salesData.getTransactionCount());
-        storeSummary.setWeekdayTransactionCount(salesData.getWeekdayTransactionCount());
-        storeSummary.setWeekendTransactionCount(salesData.getWeekendTransactionCount());
-        storeSummary.setMomGrowthRate(salesData.getMomGrowthRate());
-        storeSummary.setYoyGrowthRate(salesData.getYoyGrowthRate());
-        storeSummary.setSalesCv(salesData.getSalesCv());
-        storeSummary.setAvgTransactionValue(salesData.getAvgTransactionValue());
-        storeSummary.setCashPaymentRatio(salesData.getCashPaymentRatio());
-        storeSummary.setCardPaymentRatio(salesData.getCardPaymentRatio());
-        storeSummary.setRevisitCustomerSalesRatio(salesData.getRevisitCustomerSalesRatio());
-        storeSummary.setNewCustomerRatio(salesData.getNewCustomerRatio());
+        try {
+            log.info("CSV 데이터 필드별 업데이트 시작");
+            
+            storeSummary.setTotalSalesAmount(salesData.getTotalSalesAmount());
+            log.debug("totalSalesAmount 설정: {}", salesData.getTotalSalesAmount());
+            
+            storeSummary.setWeekdaySalesAmount(salesData.getWeekdaySalesAmount());
+            storeSummary.setWeekendSalesAmount(salesData.getWeekendSalesAmount());
+            storeSummary.setLunchSalesRatio(salesData.getLunchSalesRatio());
+            storeSummary.setDinnerSalesRatio(salesData.getDinnerSalesRatio());
+            storeSummary.setTransactionCount(salesData.getTransactionCount());
+            storeSummary.setWeekdayTransactionCount(salesData.getWeekdayTransactionCount());
+            storeSummary.setWeekendTransactionCount(salesData.getWeekendTransactionCount());
+            storeSummary.setMomGrowthRate(salesData.getMomGrowthRate());
+            storeSummary.setYoyGrowthRate(salesData.getYoyGrowthRate());
+            storeSummary.setSalesCv(salesData.getSalesCv());
+            storeSummary.setAvgTransactionValue(salesData.getAvgTransactionValue());
+            storeSummary.setCashPaymentRatio(salesData.getCashPaymentRatio());
+            storeSummary.setCardPaymentRatio(salesData.getCardPaymentRatio());
+            storeSummary.setRevisitCustomerSalesRatio(salesData.getRevisitCustomerSalesRatio());
+            storeSummary.setNewCustomerRatio(salesData.getNewCustomerRatio());
+            
+            log.info("CSV 데이터 필드별 업데이트 완료");
+        } catch (Exception e) {
+            log.error("CSV 데이터 업데이트 중 오류 발생: {}", e.getMessage(), e);
+            throw new BadRequestException("CSV 데이터 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
     }
     
     /**
@@ -161,8 +291,67 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
         storeSummary.setUpdatedDttm(now);
         storeSummary.setLastUpdatedDttm(now);
         
-        // 매출 관련 필드들은 null로 초기화 (CSV에서 업데이트될 예정)
-        // ESG, 재무, 현금흐름 관련 필드들도 null로 초기화
+        // 매출 관련 필드들을 0으로 초기화 (CSV에서 업데이트될 예정)
+        storeSummary.setTotalSalesAmount(BigDecimal.ZERO);
+        storeSummary.setWeekdaySalesAmount(BigDecimal.ZERO);
+        storeSummary.setWeekendSalesAmount(BigDecimal.ZERO);
+        storeSummary.setLunchSalesRatio(BigDecimal.ZERO);
+        storeSummary.setDinnerSalesRatio(BigDecimal.ZERO);
+        storeSummary.setTransactionCount(0);
+        storeSummary.setWeekdayTransactionCount(0);
+        storeSummary.setWeekendTransactionCount(0);
+        storeSummary.setMomGrowthRate(BigDecimal.ZERO);
+        storeSummary.setYoyGrowthRate(BigDecimal.ZERO);
+        storeSummary.setSalesCv(BigDecimal.ZERO);
+        storeSummary.setAvgTransactionValue(BigDecimal.ZERO);
+        storeSummary.setCashPaymentRatio(BigDecimal.ZERO);
+        storeSummary.setCardPaymentRatio(BigDecimal.ZERO);
+        storeSummary.setRevisitCustomerSalesRatio(BigDecimal.ZERO);
+        storeSummary.setNewCustomerRatio(BigDecimal.ZERO);
+        
+        // ESG 관련 필드들을 0 또는 false로 초기화
+        storeSummary.setElectricityUsageKwh(BigDecimal.ZERO);
+        storeSummary.setElectricityBillAmount(BigDecimal.ZERO);
+        storeSummary.setGasUsageM3(BigDecimal.ZERO);
+        storeSummary.setWaterUsageTon(BigDecimal.ZERO);
+        storeSummary.setEnergyEffApplianceRatio(BigDecimal.ZERO);
+        storeSummary.setParticipateEnergyEffSupport(false);
+        storeSummary.setParticipateHighEffEquipSupport(false);
+        storeSummary.setFoodWasteKgPerDay(BigDecimal.ZERO);
+        storeSummary.setRecycleWasteKgPerDay(BigDecimal.ZERO);
+        storeSummary.setYellowUmbrellaMember(false);
+        storeSummary.setYellowUmbrellaMonths(0);
+        storeSummary.setYellowUmbrellaAmount(BigDecimal.ZERO);
+        storeSummary.setEmploymentInsuranceEmployees(0);
+        storeSummary.setCustomerReviewAvgRating(BigDecimal.ZERO);
+        storeSummary.setCustomerReviewPositiveRatio(BigDecimal.ZERO);
+        storeSummary.setHygieneCertified(false);
+        storeSummary.setOriginPriceViolationCount(0);
+        
+        // 재무 관련 필드들을 0으로 초기화
+        storeSummary.setOperatingProfit(BigDecimal.ZERO);
+        storeSummary.setCostOfGoodsSold(BigDecimal.ZERO);
+        storeSummary.setTotalSalary(BigDecimal.ZERO);
+        storeSummary.setRentExpense(BigDecimal.ZERO);
+        storeSummary.setOtherExpenses(BigDecimal.ZERO);
+        storeSummary.setOperatingProfitRatio(BigDecimal.ZERO);
+        storeSummary.setCogsRatio(BigDecimal.ZERO);
+        storeSummary.setSalaryRatio(BigDecimal.ZERO);
+        storeSummary.setRentRatio(BigDecimal.ZERO);
+        
+        // 현금흐름 관련 필드들을 0으로 초기화
+        storeSummary.setCashPaymentRatioDetail(BigDecimal.ZERO);
+        storeSummary.setCardPaymentRatioDetail(BigDecimal.ZERO);
+        storeSummary.setOtherPaymentRatio(BigDecimal.ZERO);
+        storeSummary.setWeightedAvgCashPeriod(BigDecimal.ZERO);
+        storeSummary.setCashflowCv(BigDecimal.ZERO);
+        storeSummary.setAvgAccountBalance(BigDecimal.ZERO);
+        storeSummary.setMinBalanceMaintenanceRatio(BigDecimal.ZERO);
+        storeSummary.setExcessiveWithdrawalFrequency(BigDecimal.ZERO);
+        storeSummary.setRentPaymentComplianceRate(BigDecimal.ZERO);
+        storeSummary.setUtilityPaymentComplianceRate(BigDecimal.ZERO);
+        storeSummary.setSalaryPaymentRegularity(BigDecimal.ZERO);
+        storeSummary.setTaxPaymentIntegrity(BigDecimal.ZERO);
         
         return storeSummary;
     }

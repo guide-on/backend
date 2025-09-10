@@ -16,4 +16,9 @@ public interface StoreSummaryService {
      * CSV 데이터 업로드 및 store_summary 테이블 업데이트
      */
     CommonResponseDTO<StoreSummaryResponse> uploadCsvData(StoreSummaryCsvUploadRequest request);
+    
+    /**
+     * store_summary 테이블에 기본값 데이터 생성
+     */
+    void createDefaultStoreSummary(Long sessionId);
 }
