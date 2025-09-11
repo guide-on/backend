@@ -9,6 +9,7 @@ import com.guideon.simulation.result.dto.PageResponse;
 import com.guideon.simulation.result.dto.SimulationResultDetailDto;
 import com.guideon.simulation.result.dto.SimulationResultListDto;
 import com.guideon.simulation.result.service.SimulationResultService;
+import com.guideon.simulation.result.dto.HomeSummaryDto;
 
 import io.swagger.annotations.*;
 import lombok.RequiredArgsConstructor;
@@ -85,5 +86,20 @@ public class SimulationResultController {
         Long memberId = currentMemberIdOrThrow();
         log.debug("[RESULT-DETAIL] memberId={}, id={}", memberId, id);
         return CommonResponseDTO.ok(service.getDetail(id, memberId));
+    }
+
+
+    // 홈에서 보여주는 시뮬 결과 활동 요약
+    @GetMapping("/summary")
+    @ApiOperation(value = "홈 요약(참여/진행/최근완료 확률)",
+            notes = "로그인 사용자의 누적 참여 개수, 진행중 개수, 최근 완료건 승인확률을 반환합니다.")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "조회 성공"),
+            @ApiResponse(code = 401, message = "인증 실패(로그인 필요)")
+    })
+    public CommonResponseDTO<HomeSummaryDto> homeSummary() {
+        Long memberId = currentMemberIdOrThrow();
+        log.debug("[RESULT-SUMMARY] memberId={}", memberId);
+        return CommonResponseDTO.ok(service.getHomeSummary(memberId));
     }
 }
