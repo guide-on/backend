@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.guideon.plan.mapper.PlanEvalMapper">
+    <!-- SectionMasterVO -->
+    <resultMap id="SectionMap" type="SectionVO">
+        <id property="sectionId" column="section_id"/>
+        <result property="displayLabel" column="display_label"/>
+        <result property="weight" column="weight"/>
+        <result property="formMappings" column="form_mappings" typeHandler="com.guideon.plan.handler.StringListJsonTypeHandler"/>
+        <result property="pointsTemplate" column="points_template" typeHandler="com.guideon.plan.handler.StringListJsonTypeHandler"/>
+    </resultMap>
+
+    <select id="selectSection" resultMap="SectionMap">
+        SELECT section_id, display_label, weight, form_mappings, points_template
+        FROM plan_eval_section
+        WHERE active = 1
+        ORDER BY section_id
+    </select>
+
+    <select id="selectLastInsertId" resultType="long">
+        SELECT LAST_INSERT_ID()
+    </select>
+
+    <insert id="insertReport" parameterType="PlanEvalReportVO"
+            useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO plan_eval_report(
+            member_id, document_id, session_id, total_score, strengths_json, risks_json, created_at, updated_at
+        ) VALUES (
+                     #{memberId}, #{documentId}, #{sessionId}, #{totalScore}, #{strengths}, #{risks}, NOW(), NOW()
+                 )
+    </insert>
+
+    <insert id="insertSectionResult" parameterType="PlanEvalSectionResultVO"
+            useGeneratedKeys="true" keyProperty="sectionResultId">
+        INSERT INTO plan_eval_section_result(
+            report_id, section_id, score_points, comment, suggestions_json, created_at, updated_at
+        ) VALUES (
+                     #{reportId}, #{sectionId}, #{scorePoints}, #{comment}, #{suggestions}, NOW(), NOW()
+                 )
+            ON DUPLICATE KEY UPDATE
+                                 score_points = VALUES(score_points),
+                                 comment = VALUES(comment),
+                                 suggestions_json = VALUES(suggestions_json),
+                                 updated_at = NOW()
+    </insert>
+
+    <!-- 조회 -->
+    <resultMap id="ReportHeaderMap" type="ReportHeaderVO">
+        <id property="reportId" column="report_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="documentId" column="document_id"/>
+        <result property="sessionId" column="session_id" />
+        <result property="totalScore" column="total_score"/>
+        <result property="strengths" column="strengths_json"/>
+        <result property="risks" column="risks_json"/>
+        <result property="fileName" column="file_name"/>
+        <result property="filePath" column="file_path"/>
+        <result property="uploadedAt" column="uploaded_at"/>
+    </resultMap>
+
+    <select id="selectReportHeader" parameterType="long" resultMap="ReportHeaderMap">
+        SELECT r.report_id, r.member_id, r.document_id, r.session_id, r.total_score,
+               r.strengths_json, r.risks_json,
+               d.original_filename AS file_name, d.file_path, d.uploaded_at
+        FROM plan_eval_report r
+                 JOIN document_uploads d ON d.id = r.document_id
+        WHERE r.session_id = #{sessionId}
+        ORDER BY r.created_at DESC
+            LIMIT 1
+    </select>
+
+    <resultMap id="SectionResultMap" type="SectionResultVO">
+        <id property="sectionId" column="section_id"/>
+        <result property="label" column="label"/>
+        <result property="weight" column="weight"/>
+        <result property="score" column="score"/>
+        <result property="comment" column="comment"/>
+        <result property="points" column="points"/>
+        <result property="mappings" column="mappings"/>
+        <result property="suggestions" column="suggestions"/>
+    </resultMap>
+
+    <select id="selectSectionResults" parameterType="long" resultMap="SectionResultMap">
+        SELECT sr.section_id,
+               s.display_label AS label,
+               s.weight        AS weight,
+               sr.score_points AS score,
+               sr.comment,
+               s.points_template   AS points,
+               s.form_mappings     AS mappings,
+               sr.suggestions_json AS suggestions
+        FROM plan_eval_section_result sr
+                 JOIN plan_eval_section s ON s.section_id = sr.section_id
+        WHERE sr.report_id = #{reportId}
+        ORDER BY s.section_id
+    </select>
+
+</mapper>

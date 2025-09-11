@@ -6,4 +6,5 @@ import org.apache.ibatis.annotations.Param;
 public interface BusinessProfileMapper {
     int existsBizRegNo(@Param("bizRegNo") String bizRegNo);
     int insert(BusinessProfileVO bp);
+    BusinessProfileVO getBusinessProfile(Long memberId);
 }

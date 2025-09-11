@@ -20,6 +20,11 @@ public interface DocumentUploadsMapper {
     List<DocumentUploadsVO> selectBySessionId(Long sessionId);
 
     /**
+     * 세센별 특정 문서그룹 조회
+     */
+    DocumentUploadsVO selectBySessionIdAndGroup(@Param("sessionId") Long sessionId, @Param("documentGroup") String documentGroup);
+
+    /**
      * 세션별 마이데이터 연동 가능한 서류 ID 조회
      */
     List<Long> selectMydataEligibleIds(Long sessionId);

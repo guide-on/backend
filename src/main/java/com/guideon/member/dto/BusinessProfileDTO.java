@@ -2,6 +2,7 @@ package com.guideon.member.dto;
 
 import com.guideon.member.domain.BusinessProfileVO;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +12,7 @@ import java.time.ZoneId;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class BusinessProfileDTO {
     private String bizRegNo;            // 10 digits (no dash)
     private String bizName;
@@ -48,6 +50,18 @@ public class BusinessProfileDTO {
                 .addrRoad(addrRoad)
                 .addrDetail(addrDetail)
                 .businessSggCode(businessSggCode)
+                .build();
+    }
+
+    public static BusinessProfileDTO of(BusinessProfileVO b) {
+        return BusinessProfileDTO.builder()
+                .bizRegNo(b.getBizRegNo())
+                .bizName(b.getBizName())
+                .openDate(b.getOpenDate())
+                .ksicCode(b.getKsicCode())
+                .addrRoad(b.getAddrRoad())
+                .addrDetail(b.getAddrDetail())
+                .businessSggCode(b.getBusinessSggCode())
                 .build();
     }
 }

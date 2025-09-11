@@ -33,7 +33,8 @@ import java.util.List;
         "com.guideon.community.controller",
         "com.guideon.hybridEvaluation.controller",
         "com.guideon.common.exception",   // GlobalExceptionHandler
-        "com.guideon.funds"
+        "com.guideon.funds",
+        "com.guideon.plan.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
