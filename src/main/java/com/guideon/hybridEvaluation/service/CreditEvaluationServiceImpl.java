@@ -5,7 +5,9 @@ import com.guideon.common.exception.BadRequestException;
 import com.guideon.common.exception.NotFoundException;
 import com.guideon.hybridEvaluation.domain.CreditEvaluation;
 import com.guideon.hybridEvaluation.domain.CreditEvaluationResult;
-import com.guideon.hybridEvaluation.dto.*;
+import com.guideon.hybridEvaluation.dto.CreditEvaluationCreateRequest;
+import com.guideon.hybridEvaluation.dto.CreditEvaluationListRequest;
+import com.guideon.hybridEvaluation.dto.CreditEvaluationResponse;
 import com.guideon.hybridEvaluation.mapper.CreditEvaluationMapper;
 import com.guideon.hybridEvaluation.mapper.CreditEvaluationResultMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.guideon.security.util.LoginUserProvider;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -27,32 +28,32 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
     private final CreditEvaluationMapper creditEvaluationMapper;
     private final CreditEvaluationResultMapper creditEvaluationResultMapper;
     private final CreditScoreCalculationService creditScoreCalculationService;
-    private final LoginUserProvider loginUserProvider;
+    private final StoreSummaryService storeSummaryService;
     
     @Override
     @Transactional
     public CommonResponseDTO<CreditEvaluationResponse> createCreditEvaluation(CreditEvaluationCreateRequest request) {
         try {
-            // 로그인한 사용자의 memberId 가져오기
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
             // 유효성 검증
             validateCreateRequest(request);
+            
+            // 요청에서 받은 sessionId 사용
+            Long sessionId = request.getSessionId();
+            if (sessionId == null) {
+                throw new BadRequestException("세션 ID는 필수 값입니다.");
+            }
             
             // DTO를 Entity로 변환
             CreditEvaluation creditEvaluation = new CreditEvaluation();
             BeanUtils.copyProperties(request, creditEvaluation);
             
-            // 로그인한 사용자의 memberId를 설정 (request에서 받지 않고 직접 설정)
-            creditEvaluation.setMemberId(String.valueOf(loginMemberId));
+            // 요청에서 받은 sessionId를 설정
+            creditEvaluation.setSessionId(sessionId);
             creditEvaluation.setEvaluationDate(new Timestamp(System.currentTimeMillis()));
             
             // 데이터베이스에 저장
-            log.info("저장할 creditEvaluation: memberId={}, evaluationDate={}", 
-                     creditEvaluation.getMemberId(), creditEvaluation.getEvaluationDate());
+            log.info("저장할 creditEvaluation: sessionId={}, evaluationDate={}", 
+                     creditEvaluation.getSessionId(), creditEvaluation.getEvaluationDate());
             
             int result = creditEvaluationMapper.insertCreditEvaluation(creditEvaluation);
             log.info("INSERT 결과: {}", result);
@@ -60,7 +61,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
             if (result > 0) {
                 // 저장된 데이터 조회 (최신 데이터 조회로 변경)
                 CreditEvaluation savedData = creditEvaluationMapper.selectLatestCreditEvaluation(
-                    creditEvaluation.getMemberId()
+                    creditEvaluation.getSessionId()
                 );
                 
                 log.info("조회된 savedData: {}", savedData);
@@ -73,14 +74,14 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
                         CreditEvaluationResult scoreResult = creditScoreCalculationService.calculateCreditScore(savedData);
                         
                         // 기존 결과가 있다면 삭제 후 새로 저장
-                        if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getMemberId())) {
-                            creditEvaluationResultMapper.deleteCreditEvaluationResult(scoreResult.getMemberId());
-                            log.info("기존 신용점수 결과 삭제됨: memberId={}", scoreResult.getMemberId());
+                        if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getSessionId())) {
+                            creditEvaluationResultMapper.deleteCreditEvaluationResult(scoreResult.getSessionId());
+                            log.info("기존 신용점수 결과 삭제됨: sessionId={}", scoreResult.getSessionId());
                         }
                         
                         creditEvaluationResultMapper.insertCreditEvaluationResult(scoreResult);
-                        log.info("신용점수 계산 및 저장 완료: memberId={}, totalScore={}", 
-                                scoreResult.getMemberId(), scoreResult.getTotalScore());
+                        log.info("신용점수 계산 및 저장 완료: sessionId={}, totalScore={}", 
+                                scoreResult.getSessionId(), scoreResult.getTotalScore());
                         
                     } catch (Exception scoreException) {
                         log.error("신용점수 계산 중 오류 발생: {}", scoreException.getMessage(), scoreException);
@@ -90,7 +91,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
                     // Entity를 Response DTO로 변환
                     response = convertToResponse(savedData);
                 } else {
-                    log.warn("저장된 데이터 조회 실패. 기본 응답 생성: memberId={}", creditEvaluation.getMemberId());
+                    log.warn("저장된 데이터 조회 실패. 기본 응답 생성: sessionId={}", creditEvaluation.getSessionId());
                     // savedData가 null이면 기본 응답 생성
                     response = createDefaultResponse(creditEvaluation);
                 }
@@ -107,166 +108,27 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
     }
     
     @Override
-    @Transactional
-    public CommonResponseDTO<CreditEvaluationResponse> updateCreditEvaluation(CreditEvaluationUpdateRequest request) {
-        try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
-            // 본인의 데이터만 수정할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(request.getMemberId())) {
-                throw new BadRequestException("본인의 데이터만 수정할 수 있습니다.");
-            }
-            
-            // 유효성 검증
-            validateUpdateRequest(request);
-            
-            // 기존 데이터 존재 여부 확인
-            boolean exists = creditEvaluationMapper.existsCreditEvaluation(
-                request.getMemberId(), 
-                request.getEvaluationDate()
-            );
-            
-            if (!exists) {
-                throw new NotFoundException("수정할 신용평가 데이터를 찾을 수 없습니다.");
-            }
-            
-            // DTO를 Entity로 변환
-            CreditEvaluation creditEvaluation = new CreditEvaluation();
-            BeanUtils.copyProperties(request, creditEvaluation);
-            
-            // 데이터베이스 업데이트
-            int result = creditEvaluationMapper.updateCreditEvaluation(creditEvaluation);
-            
-            if (result > 0) {
-                // 수정된 데이터 조회
-                CreditEvaluation updatedData = creditEvaluationMapper.selectCreditEvaluation(
-                    creditEvaluation.getMemberId(), 
-                    creditEvaluation.getEvaluationDate()
-                );
-                
-                // 신용점수 재계산 및 저장
-                try {
-                    CreditEvaluationResult scoreResult = creditScoreCalculationService.calculateCreditScore(updatedData);
-                    
-                    // 기존 결과 업데이트 또는 새로 생성
-                    if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getMemberId())) {
-                        creditEvaluationResultMapper.updateCreditEvaluationResult(scoreResult);
-                        log.info("신용점수 결과 업데이트 완료: memberId={}, totalScore={}", 
-                                scoreResult.getMemberId(), scoreResult.getTotalScore());
-                    } else {
-                        creditEvaluationResultMapper.insertCreditEvaluationResult(scoreResult);
-                        log.info("신용점수 결과 새로 생성 완료: memberId={}, totalScore={}", 
-                                scoreResult.getMemberId(), scoreResult.getTotalScore());
-                    }
-                    
-                } catch (Exception scoreException) {
-                    log.error("신용점수 재계산 중 오류 발생: {}", scoreException.getMessage(), scoreException);
-                    // 신용점수 계산 실패해도 신용평가 수정은 성공으로 처리
-                }
-                
-                // Entity를 Response DTO로 변환
-                CreditEvaluationResponse response = convertToResponse(updatedData);
-                
-                return CommonResponseDTO.success("신용평가 데이터가 성공적으로 수정되었습니다.", response);
-            } else {
-                throw new BadRequestException("신용평가 데이터 수정에 실패했습니다.");
-            }
-            
-        } catch (Exception e) {
-            log.error("신용평가 데이터 수정 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("신용평가 데이터 수정 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public CommonResponseDTO<CreditEvaluationResponse> getCreditEvaluation(String memberId, Timestamp evaluationDate) {
-        try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
-            // 본인의 데이터만 조회할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(memberId)) {
-                throw new BadRequestException("본인의 데이터만 조회할 수 있습니다.");
-            }
-            
-            CreditEvaluation creditEvaluation = creditEvaluationMapper.selectCreditEvaluation(memberId, evaluationDate);
-            
-            if (creditEvaluation == null) {
-                throw new NotFoundException("해당 신용평가 데이터를 찾을 수 없습니다.");
-            }
-            
-            CreditEvaluationResponse response = convertToResponse(creditEvaluation);
-            return CommonResponseDTO.success("신용평가 데이터 조회가 완료되었습니다.", response);
-            
-        } catch (Exception e) {
-            log.error("신용평가 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("신용평가 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public CommonResponseDTO<CreditEvaluationResponse> getLatestCreditEvaluation(String memberId) {
-        try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
-            // 본인의 데이터만 조회할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(memberId)) {
-                throw new BadRequestException("본인의 데이터만 조회할 수 있습니다.");
-            }
-            
-            CreditEvaluation creditEvaluation = creditEvaluationMapper.selectLatestCreditEvaluation(memberId);
-            
-            if (creditEvaluation == null) {
-                throw new NotFoundException("해당 사용자의 신용평가 데이터를 찾을 수 없습니다.");
-            }
-            
-            CreditEvaluationResponse response = convertToResponse(creditEvaluation);
-            return CommonResponseDTO.success("최신 신용평가 데이터 조회가 완료되었습니다.", response);
-            
-        } catch (Exception e) {
-            log.error("최신 신용평가 데이터 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("최신 신용평가 데이터 조회 중 오류가 발생했습니다: " + e.getMessage());
-        }
-    }
-    
-    @Override
     @Transactional(readOnly = true)
     public CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationList(CreditEvaluationListRequest request) {
         try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
+            // 세션 ID 검증
+            Long sessionId = request.getSessionId();
+            if (sessionId == null) {
+                throw new BadRequestException("세션 ID는 필수 값입니다.");
             }
-            
-            // 본인의 데이터만 조회할 수 있도록 강제 설정
-            request.setMemberId(String.valueOf(loginMemberId));
-            
+
             List<CreditEvaluation> creditEvaluations = creditEvaluationMapper.selectCreditEvaluationList(request);
             int totalCount = creditEvaluationMapper.countCreditEvaluationList(request);
-            
+
             List<CreditEvaluationResponse> responses = creditEvaluations.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
-            
+
             return CommonResponseDTO.success(
-                String.format("신용평가 데이터 목록 조회가 완료되었습니다. (총 %d건)", totalCount), 
+                String.format("신용평가 데이터 목록 조회가 완료되었습니다. (총 %d건)", totalCount),
                 responses
             );
-            
+
         } catch (Exception e) {
             log.error("신용평가 데이터 목록 조회 중 오류 발생: {}", e.getMessage(), e);
             throw new BadRequestException("신용평가 데이터 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
@@ -274,101 +136,92 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
     }
     
     @Override
-    @Transactional(readOnly = true)
-    public CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationHistory(String memberId, Integer page, Integer limit) {
+    @Transactional
+    public CommonResponseDTO<String> initializeHybridEvaluation(Long sessionId) {
         try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
+            log.info("하이브리드 평가 데이터 초기화 시작: sessionId={}", sessionId);
             
-            // 본인의 데이터만 조회할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(memberId)) {
-                throw new BadRequestException("본인의 데이터만 조회할 수 있습니다.");
-            }
+            // 1. store_summary 테이블에 기본값 데이터 생성
+            createDefaultStoreSummary(sessionId);
             
-            int offset = (page - 1) * limit;
-            List<CreditEvaluation> creditEvaluations = creditEvaluationMapper.selectCreditEvaluationHistory(memberId, limit, offset);
-            int totalCount = creditEvaluationMapper.countCreditEvaluationHistory(memberId);
+            // 2. credit_evaluation 테이블에 기본값 데이터 생성
+            createDefaultCreditEvaluation(sessionId);
             
-            List<CreditEvaluationResponse> responses = creditEvaluations.stream()
-                .map(this::convertToResponse)
-                .collect(Collectors.toList());
+            log.info("하이브리드 평가 데이터 초기화 완료: sessionId={}", sessionId);
             
             return CommonResponseDTO.success(
-                String.format("사용자 신용평가 이력 조회가 완료되었습니다. (총 %d건)", totalCount), 
-                responses
+                "하이브리드 평가 데이터가 성공적으로 초기화되었습니다.",
+                "초기화 완료"
             );
             
         } catch (Exception e) {
-            log.error("사용자 신용평가 이력 조회 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("사용자 신용평가 이력 조회 중 오류가 발생했습니다: " + e.getMessage());
+            log.error("하이브리드 평가 데이터 초기화 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("하이브리드 평가 데이터 초기화 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
     
-    @Override
-    @Transactional
-    public CommonResponseDTO<Void> deleteCreditEvaluation(String memberId, Timestamp evaluationDate) {
-        try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
-            // 본인의 데이터만 삭제할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(memberId)) {
-                throw new BadRequestException("본인의 데이터만 삭제할 수 있습니다.");
-            }
-            
-            // 기존 데이터 존재 여부 확인
-            boolean exists = creditEvaluationMapper.existsCreditEvaluation(memberId, evaluationDate);
-            
-            if (!exists) {
-                throw new NotFoundException("삭제할 신용평가 데이터를 찾을 수 없습니다.");
-            }
-            
-            int result = creditEvaluationMapper.deleteCreditEvaluation(memberId, evaluationDate);
-            
-            if (result > 0) {
-                return CommonResponseDTO.success("신용평가 데이터가 성공적으로 삭제되었습니다.", null);
-            } else {
-                throw new BadRequestException("신용평가 데이터 삭제에 실패했습니다.");
-            }
-            
-        } catch (Exception e) {
-            log.error("신용평가 데이터 삭제 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("신용평가 데이터 삭제 중 오류가 발생했습니다: " + e.getMessage());
-        }
+    /**
+     * store_summary 테이블에 기본값 데이터 생성
+     */
+    private void createDefaultStoreSummary(Long sessionId) {
+        log.info("store_summary 기본값 데이터 생성: sessionId={}", sessionId);
+        storeSummaryService.createDefaultStoreSummary(sessionId);
     }
     
-    @Override
-    @Transactional
-    public CommonResponseDTO<Void> deleteAllCreditEvaluationByMemberId(String memberId) {
-        try {
-            // 로그인한 사용자의 memberId 검증
-            Long loginMemberId = loginUserProvider.getLoginMemberId();
-            if (loginMemberId == null) {
-                throw new BadRequestException("로그인이 필요합니다.");
-            }
-            
-            // 본인의 데이터만 삭제할 수 있도록 검증
-            if (!String.valueOf(loginMemberId).equals(memberId)) {
-                throw new BadRequestException("본인의 데이터만 삭제할 수 있습니다.");
-            }
-            
-            int result = creditEvaluationMapper.deleteAllCreditEvaluationByMemberId(memberId);
-            
-            return CommonResponseDTO.success(
-                String.format("사용자의 모든 신용평가 데이터가 삭제되었습니다. (삭제된 건수: %d)", result), 
-                null
-            );
-            
-        } catch (Exception e) {
-            log.error("사용자 신용평가 데이터 전체 삭제 중 오류 발생: {}", e.getMessage(), e);
-            throw new BadRequestException("사용자 신용평가 데이터 전체 삭제 중 오류가 발생했습니다: " + e.getMessage());
+    /**
+     * credit_evaluation 테이블에 기본값 데이터 생성
+     */
+    private void createDefaultCreditEvaluation(Long sessionId) {
+        log.info("credit_evaluation 기본값 데이터 생성: sessionId={}", sessionId);
+        
+        // 기본값으로 CreditEvaluation 객체 생성
+        CreditEvaluation creditEvaluation = new CreditEvaluation();
+        creditEvaluation.setSessionId(sessionId);
+        creditEvaluation.setEvaluationDate(new Timestamp(System.currentTimeMillis()));
+        
+        // 상환이력 (28.4%) - 기본값 0으로 설정
+        creditEvaluation.setTotalOverdueCount(0);
+        creditEvaluation.setRecent12mOverdueCount(0);
+        creditEvaluation.setMaxOverdueDays(0);
+        creditEvaluation.setCurrentOverdueAmount(new java.math.BigDecimal("0"));
+        creditEvaluation.setLoanDefaultHistory(0);
+        creditEvaluation.setCreditCardDelayRate(new java.math.BigDecimal("0"));
+        creditEvaluation.setPaymentConsistencyScore(0);
+        
+        // 부채수준 (24.5%) - 기본값 0으로 설정
+        creditEvaluation.setTotalDebtAmount(new java.math.BigDecimal("0"));
+        creditEvaluation.setMonthlyIncome(new java.math.BigDecimal("0"));
+        creditEvaluation.setDebtToIncomeRatio(new java.math.BigDecimal("0"));
+        creditEvaluation.setCreditCardUtilizationRate(new java.math.BigDecimal("0"));
+        creditEvaluation.setSecuredVsUnsecuredRatio(new java.math.BigDecimal("0"));
+        
+        // 신용거래기간 (12.3%) - 기본값 0으로 설정
+        creditEvaluation.setCreditHistoryMonths(0);
+        creditEvaluation.setOldestCreditAccountMonths(0);
+        creditEvaluation.setNewCreditInquiries6m(0);
+        
+        // 신용형태 (27.5%) - 기본값 0으로 설정
+        creditEvaluation.setActiveCreditCardCount(0);
+        creditEvaluation.setTotalCreditLimit(new java.math.BigDecimal("0"));
+        creditEvaluation.setLoanTypeDiversity(0);
+        creditEvaluation.setFinancialInstitutionCount(0);
+        
+        // 비금융/마이데이터 (7.3%) - 기본값 0으로 설정
+        creditEvaluation.setAlternativeCreditScore(0);
+        
+        // 메타데이터 설정
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        creditEvaluation.setCreatedAt(now);
+        creditEvaluation.setUpdatedAt(now);
+        
+        // 데이터베이스에 저장
+        int result = creditEvaluationMapper.insertCreditEvaluation(creditEvaluation);
+        
+        if (result != 1) {
+            throw new BadRequestException("credit_evaluation 테이블 데이터 생성에 실패했습니다.");
         }
+        
+        log.info("credit_evaluation 기본값 데이터 생성 완료: sessionId={}", sessionId);
     }
     
     /**
@@ -385,7 +238,7 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
      */
     private CreditEvaluationResponse createDefaultResponse(CreditEvaluation creditEvaluation) {
         CreditEvaluationResponse response = new CreditEvaluationResponse();
-        response.setMemberId(creditEvaluation.getMemberId());
+        response.setSessionId(creditEvaluation.getSessionId());
         response.setEvaluationDate(creditEvaluation.getEvaluationDate());
         response.setTotalOverdueCount(creditEvaluation.getTotalOverdueCount());
         response.setRecent12mOverdueCount(creditEvaluation.getRecent12mOverdueCount());
@@ -414,28 +267,10 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
      * 생성 요청 유효성 검증
      */
     private void validateCreateRequest(CreditEvaluationCreateRequest request) {
-        // memberId는 loginUserProvider에서 자동으로 설정되므로 검증하지 않음
+        // sessionId는 요청에서 제공되므로 이미 검증됨
         
         // 추가적인 비즈니스 로직 검증
         validateBusinessRules(request);
-    }
-    
-    /**
-     * 수정 요청 유효성 검증
-     */
-    private void validateUpdateRequest(CreditEvaluationUpdateRequest request) {
-        if (request.getMemberId() == null || request.getMemberId().trim().isEmpty()) {
-            throw new BadRequestException("사용자 ID는 필수입니다.");
-        }
-        
-        if (request.getEvaluationDate() == null) {
-            throw new BadRequestException("평가일자는 필수입니다.");
-        }
-        
-        // 추가적인 비즈니스 로직 검증 (CreateRequest와 동일한 검증 로직 사용)
-        CreditEvaluationCreateRequest createRequest = new CreditEvaluationCreateRequest();
-        BeanUtils.copyProperties(request, createRequest);
-        validateBusinessRules(createRequest);
     }
     
     /**

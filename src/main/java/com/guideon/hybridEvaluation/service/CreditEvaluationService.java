@@ -14,37 +14,12 @@ public interface CreditEvaluationService {
     CommonResponseDTO<CreditEvaluationResponse> createCreditEvaluation(CreditEvaluationCreateRequest request);
     
     /**
-     * 신용평가 데이터 수정
-     */
-    CommonResponseDTO<CreditEvaluationResponse> updateCreditEvaluation(CreditEvaluationUpdateRequest request);
-    
-    /**
-     * 특정 사용자의 특정 평가일자 데이터 조회
-     */
-    CommonResponseDTO<CreditEvaluationResponse> getCreditEvaluation(String memberId, Timestamp evaluationDate);
-    
-    /**
-     * 특정 사용자의 최신 신용평가 데이터 조회
-     */
-    CommonResponseDTO<CreditEvaluationResponse> getLatestCreditEvaluation(String memberId);
-    
-    /**
      * 신용평가 데이터 목록 조회 (페이징)
      */
     CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationList(CreditEvaluationListRequest request);
     
     /**
-     * 특정 사용자의 신용평가 이력 조회
+     * 하이브리드 평가 데이터 초기화 (store_summary, credit_evaluation 테이블에 기본값 생성)
      */
-    CommonResponseDTO<List<CreditEvaluationResponse>> getCreditEvaluationHistory(String memberId, Integer page, Integer limit);
-    
-    /**
-     * 신용평가 데이터 삭제
-     */
-    CommonResponseDTO<Void> deleteCreditEvaluation(String memberId, Timestamp evaluationDate);
-    
-    /**
-     * 특정 사용자의 모든 신용평가 데이터 삭제
-     */
-    CommonResponseDTO<Void> deleteAllCreditEvaluationByMemberId(String memberId);
+    CommonResponseDTO<String> initializeHybridEvaluation(Long sessionId);
 }

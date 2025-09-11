@@ -4,7 +4,7 @@
 
     <!-- ResultMap 정의 -->
     <resultMap id="CreditEvaluationResultMap" type="com.guideon.hybridEvaluation.domain.CreditEvaluationResult">
-        <id property="memberId" column="member_id"/>
+        <id property="sessionId" column="session_id"/>
         <result property="totalScore" column="total_score"/>
         <result property="repaymentHistoryScore" column="repayment_history_score"/>
         <result property="debtLevelScore" column="debt_level_score"/>
@@ -16,17 +16,17 @@
 
     <!-- SQL 조각 정의 -->
     <sql id="creditEvaluationResultColumns">
-        member_id, total_score, repayment_history_score, debt_level_score,
+        session_id, total_score, repayment_history_score, debt_level_score,
         credit_period_score, credit_pattern_score, non_financial_score, score_calculated_dttm
     </sql>
 
     <!-- 신용평가 결과 생성 -->
     <insert id="insertCreditEvaluationResult" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluationResult">
         INSERT INTO credit_evaluation_result (
-            member_id, total_score, repayment_history_score, debt_level_score,
+            session_id, total_score, repayment_history_score, debt_level_score,
             credit_period_score, credit_pattern_score, non_financial_score, score_calculated_dttm
         ) VALUES (
-            #{memberId}, #{totalScore}, #{repaymentHistoryScore}, #{debtLevelScore},
+            #{sessionId}, #{totalScore}, #{repaymentHistoryScore}, #{debtLevelScore},
             #{creditPeriodScore}, #{creditPatternScore}, #{nonFinancialScore}, NOW()
         )
     </insert>
@@ -42,14 +42,14 @@
             credit_pattern_score = #{creditPatternScore},
             non_financial_score = #{nonFinancialScore},
             score_calculated_dttm = NOW()
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </update>
 
     <!-- 특정 사용자의 신용평가 결과 조회 -->
     <select id="selectCreditEvaluationResult" resultMap="CreditEvaluationResultMap">
         SELECT <include refid="creditEvaluationResultColumns"/>
         FROM credit_evaluation_result
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </select>
 
     <!-- 모든 신용평가 결과 목록 조회 -->
@@ -70,14 +70,14 @@
     <!-- 신용평가 결과 삭제 -->
     <delete id="deleteCreditEvaluationResult">
         DELETE FROM credit_evaluation_result
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </delete>
 
     <!-- 신용평가 결과 존재 여부 확인 -->
     <select id="existsCreditEvaluationResult" resultType="boolean">
         SELECT COUNT(*) &gt; 0
         FROM credit_evaluation_result
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </select>
 
     <!-- 전체 신용평가 결과 개수 조회 -->

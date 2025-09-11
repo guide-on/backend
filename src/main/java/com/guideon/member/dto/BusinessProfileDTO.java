@@ -1,6 +1,7 @@
 package com.guideon.member.dto;
 
 import com.guideon.member.domain.BusinessProfileVO;
+import com.guideon.security.account.domain.MemberVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
