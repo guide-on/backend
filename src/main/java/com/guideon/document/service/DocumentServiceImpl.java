@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -176,8 +177,6 @@ public class DocumentServiceImpl implements DocumentService {
 
         // 3. 서류가 없으면 안내 응답
         if (documents.isEmpty()) {
-            log.info("생성된 서류 없음: sessionId={}", sessionId);
-
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.put("sessionId", sessionId);
@@ -188,7 +187,6 @@ public class DocumentServiceImpl implements DocumentService {
             response.put("completedRequirements", 0);
             response.put("progressPercentage", 0.0);
             response.put("message", "서류가 아직 생성되지 않았습니다.");
-
             return response;
         }
 
@@ -219,18 +217,13 @@ public class DocumentServiceImpl implements DocumentService {
                         doc -> doc
                 ));
 
-        // 7. documentGroups에 실제 업로드 상태 반영
-        int totalRequirements = 0;
-        int completedRequirements = 0;
-
+        // 7. documentGroups에 실제 업로드 상태만 반영 (진행률 계산 제거)
         for (Map<String, Object> group : documentGroups) {
             String groupKey = (String) group.get("groupKey");
             Integer minSelect = (Integer) group.get("minSelect");
             List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
 
             if (docs != null && minSelect != null) {
-                totalRequirements += minSelect;
-
                 int groupCompletedCount = 0;
 
                 // 각 서류에 실제 상태 정보 추가
@@ -253,13 +246,12 @@ public class DocumentServiceImpl implements DocumentService {
                             doc.put("uploadedAt", uploadedDoc.getUploadedAt());
                         }
 
-                        // 완료된 서류 카운트 (UPLOADED 또는 VALIDATED 상태)
+                        // 완료된 서류 카운트 (진행률 계산은 안하고 UI 표시용으로만)
                         String status = uploadedDoc.getUploadStatus();
                         if ("UPLOADED".equals(status) || "VALIDATED".equals(status)) {
                             groupCompletedCount++;
                         }
 
-                        // status를 uploadStatus로 덮어쓰기 (일관성)
                         doc.put("status", uploadedDoc.getUploadStatus().toLowerCase());
                     } else {
                         // DB에 없으면 기본 상태
@@ -270,38 +262,24 @@ public class DocumentServiceImpl implements DocumentService {
                     }
                 }
 
-                // 그룹별 완료 수는 최소 선택 수로 제한
-                completedRequirements += Math.min(groupCompletedCount, minSelect);
-
                 // 그룹에 완료 정보 추가 (UI에서 사용할 수 있도록)
                 group.put("submitted", Math.min(groupCompletedCount, minSelect));
                 group.put("isCompleted", groupCompletedCount >= minSelect);
             }
         }
 
-        // 8. 전체 진행률 계산
-        double progressPercentage = totalRequirements > 0 ?
-                Math.round((double) completedRequirements / totalRequirements * 100.0 * 100.0) / 100.0 : 0.0;
-
-        // 9. 세션 진행 상태 업데이트
-        loanSessionMapper.updateSessionProgress(sessionId, totalRequirements, completedRequirements, progressPercentage);
-
-        // 10. getRequiredDocuments와 동일한 구조 + 상태 정보
+        // 8. 응답 구성
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("success", true);
         response.put("sessionId", sessionId);
         response.put("policyName", policy.getPolicyName());
-
-        // 핵심: getRequiredDocuments와 동일한 구조
         response.put("documentGroups", documentGroups);
         response.put("totalGroups", documentGroups.size());
+        response.put("totalRequirements", session.getRequiredDocuments() != null ? session.getRequiredDocuments() : 0);
+        response.put("completedRequirements", session.getSubmittedDocuments() != null ? session.getSubmittedDocuments() : 0);
+        response.put("progressPercentage", session.getProgressPercentage() != null ? session.getProgressPercentage() : BigDecimal.ZERO);
 
-        // 추가: 진행률 정보
-        response.put("totalRequirements", totalRequirements);
-        response.put("completedRequirements", completedRequirements);
-        response.put("progressPercentage", progressPercentage);
-
-        log.info("서류 상태 조회 완료: sessionId={}, 진행률={}%", sessionId, progressPercentage);
+        log.info("서류 상태 조회 완료: sessionId={}, 진행률={}%", sessionId, session.getProgressPercentage());
 
         return response;
     }

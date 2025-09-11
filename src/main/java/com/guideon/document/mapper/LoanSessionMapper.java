@@ -1,6 +1,7 @@
 package com.guideon.document.mapper;
 
 import com.guideon.document.domain.LoanSessionVO;
+import com.guideon.document.dto.DocumentResultDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -33,4 +34,16 @@ public interface LoanSessionMapper {
     LoanSessionVO selectByBusinessIdAndPolicyId(@Param("businessId") Long businessId,
                                                 @Param("policyId") Long policyId);
 
+    /**
+     * DocumentResult를 simulation_result 테이블에 저장 (임시)
+     */
+    // 매퍼 인터페이스
+    int insertDocumentResultToSimulation(@Param("businessId") Long businessId,
+                                         @Param("memberId") Long memberId,
+                                         @Param("documentResult") DocumentResultDTO documentResult);
+    /**
+     * DocumentResult를 simulation_result 테이블에 업데이트 (임시)
+     */
+    int updateDocumentResultInSimulation(@Param("businessId") Long businessId,
+                                         @Param("documentResult") DocumentResultDTO documentResult);
 }
