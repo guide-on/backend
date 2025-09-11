@@ -3,17 +3,12 @@ package com.guideon.hybridEvaluation.dto;
 import lombok.Data;
 
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.sql.Timestamp;
 
 @Data
 public class StoreSummaryResponse {
-    private Long memberId;
-    private Long ownerId;
+    private Long sessionId;
     private String businessRegistrationNo;
-    private String industryCode;
-    private Date openDate;
-    private String summaryYearMonth;
     
     // 매출 관련 (매출성장성 및 안정성)
     private BigDecimal totalSalesAmount;
@@ -28,8 +23,6 @@ public class StoreSummaryResponse {
     private BigDecimal yoyGrowthRate;
     private BigDecimal salesCv;
     private BigDecimal avgTransactionValue;
-    private BigDecimal weekdayAvgTransactionValue;
-    private BigDecimal weekendAvgTransactionValue;
     private BigDecimal cashPaymentRatio;
     private BigDecimal cardPaymentRatio;
     private BigDecimal revisitCustomerSalesRatio;
@@ -63,14 +56,12 @@ public class StoreSummaryResponse {
     private BigDecimal operatingProfit;
     private BigDecimal costOfGoodsSold;
     private BigDecimal totalSalary;
-    private BigDecimal operatingExpenses;
     private BigDecimal rentExpense;
     private BigDecimal otherExpenses;
     private BigDecimal operatingProfitRatio;
     private BigDecimal cogsRatio;
     private BigDecimal salaryRatio;
     private BigDecimal rentRatio;
-    private BigDecimal operatingExpenseRatio;
     
     // 현금흐름 건전성 관련
     private BigDecimal cashPaymentRatioDetail;

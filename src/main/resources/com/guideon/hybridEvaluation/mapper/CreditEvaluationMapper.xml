@@ -4,7 +4,7 @@
 
     <!-- ResultMap 정의 -->
     <resultMap id="CreditEvaluationResultMap" type="com.guideon.hybridEvaluation.domain.CreditEvaluation">
-        <result property="memberId" column="member_id"/>
+        <result property="sessionId" column="session_id"/>
         <result property="evaluationDate" column="evaluation_date"/>
         
         <!-- 상환이력 -->
@@ -44,7 +44,7 @@
 
     <!-- SQL 조각 정의 -->
     <sql id="creditEvaluationColumns">
-        member_id, evaluation_date,
+        session_id, evaluation_date,
         total_overdue_count, recent_12m_overdue_count, max_overdue_days,
         current_overdue_amount, loan_default_history, credit_card_delay_rate,
         payment_consistency_score, total_debt_amount, monthly_income,
@@ -57,8 +57,8 @@
 
     <sql id="whereConditions">
         <where>
-            <if test="memberId != null and memberId != ''">
-                AND member_id = #{memberId}
+            <if test="sessionId != null and sessionId != ''">
+                AND session_id = #{sessionId}
             </if>
             <if test="startDate != null">
                 AND evaluation_date &gt;= #{startDate}
@@ -72,7 +72,7 @@
     <!-- 신용평가 데이터 생성 -->
     <insert id="insertCreditEvaluation" parameterType="com.guideon.hybridEvaluation.domain.CreditEvaluation">
         INSERT INTO credit_evaluation (
-            member_id, evaluation_date,
+            session_id, evaluation_date,
             total_overdue_count, recent_12m_overdue_count, max_overdue_days,
             current_overdue_amount, loan_default_history, credit_card_delay_rate,
             payment_consistency_score, total_debt_amount, monthly_income,
@@ -81,7 +81,7 @@
             active_credit_card_count, total_credit_limit, loan_type_diversity,
             financial_institution_count, alternative_credit_score
         ) VALUES (
-            #{memberId}, #{evaluationDate},
+            #{sessionId}, #{evaluationDate},
             #{totalOverdueCount}, #{recent12mOverdueCount}, #{maxOverdueDays},
             #{currentOverdueAmount}, #{loanDefaultHistory}, #{creditCardDelayRate},
             #{paymentConsistencyScore}, #{totalDebtAmount}, #{monthlyIncome},
@@ -117,21 +117,21 @@
             financial_institution_count = #{financialInstitutionCount},
             alternative_credit_score = #{alternativeCreditScore},
             updated_at = CURRENT_TIMESTAMP
-        WHERE member_id = #{memberId} AND evaluation_date = #{evaluationDate}
+        WHERE session_id = #{sessionId} AND evaluation_date = #{evaluationDate}
     </update>
 
     <!-- 특정 사용자의 특정 평가일자 데이터 조회 -->
     <select id="selectCreditEvaluation" resultMap="CreditEvaluationResultMap">
         SELECT <include refid="creditEvaluationColumns"/>
         FROM credit_evaluation
-        WHERE member_id = #{memberId} AND evaluation_date = #{evaluationDate}
+        WHERE session_id = #{sessionId} AND evaluation_date = #{evaluationDate}
     </select>
 
     <!-- 특정 사용자의 최신 신용평가 데이터 조회 -->
     <select id="selectLatestCreditEvaluation" resultMap="CreditEvaluationResultMap">
         SELECT <include refid="creditEvaluationColumns"/>
         FROM credit_evaluation
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
         ORDER BY evaluation_date DESC
         LIMIT 1
     </select>
@@ -144,7 +144,7 @@
         <include refid="whereConditions"/>
         ORDER BY 
         <choose>
-            <when test="sortBy == 'memberId'">member_id</when>
+            <when test="sortBy == 'sessionId'">session_id</when>
             <when test="sortBy == 'createdAt'">created_at</when>
             <otherwise>evaluation_date</otherwise>
         </choose>
@@ -167,7 +167,7 @@
     <select id="selectCreditEvaluationHistory" resultMap="CreditEvaluationResultMap">
         SELECT <include refid="creditEvaluationColumns"/>
         FROM credit_evaluation
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
         ORDER BY evaluation_date DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
@@ -176,26 +176,26 @@
     <select id="countCreditEvaluationHistory" resultType="int">
         SELECT COUNT(*)
         FROM credit_evaluation
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </select>
 
     <!-- 신용평가 데이터 삭제 (물리적 삭제) -->
     <delete id="deleteCreditEvaluation">
         DELETE FROM credit_evaluation
-        WHERE member_id = #{memberId} AND evaluation_date = #{evaluationDate}
+        WHERE session_id = #{sessionId} AND evaluation_date = #{evaluationDate}
     </delete>
 
     <!-- 특정 사용자의 모든 신용평가 데이터 삭제 -->
-    <delete id="deleteAllCreditEvaluationByMemberId">
+    <delete id="deleteAllCreditEvaluationBySessionId">
         DELETE FROM credit_evaluation
-        WHERE member_id = #{memberId}
+        WHERE session_id = #{sessionId}
     </delete>
 
     <!-- 신용평가 데이터 존재 여부 확인 -->
     <select id="existsCreditEvaluation" resultType="boolean">
         SELECT COUNT(*) &gt; 0
         FROM credit_evaluation
-        WHERE member_id = #{memberId} AND evaluation_date = #{evaluationDate}
+        WHERE session_id = #{sessionId} AND evaluation_date = #{evaluationDate}
     </select>
 
 </mapper>

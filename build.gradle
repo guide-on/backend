@@ -87,11 +87,6 @@ dependencies {
     implementation("org.springframework.security:spring-security-core:${springSecurityVersion}")
     implementation("org.springframework.security:spring-security-taglibs:${springSecurityVersion}")
 
-    // Spring Security OAuth2
-    implementation 'org.springframework.security:spring-security-oauth2-client:5.7.3'
-    implementation 'org.springframework.security:spring-security-oauth2-jose:5.7.3'
-    implementation 'org.springframework.security:spring-security-oauth2-core:5.7.3'
-
     // ===== JWT 관련 의존성 =====
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
@@ -111,6 +106,9 @@ dependencies {
     // ====== Google OCR 관련 의존성 ======
     implementation platform("com.google.cloud:libraries-bom:26.49.0")
     implementation "com.google.cloud:google-cloud-vision"
+
+    // ====== PDF 추출 ======
+    implementation 'org.apache.pdfbox:pdfbox:2.0.30'     // PDF 텍스트 추출
 
     // ===== 테스트 관련 의존성 =====
     testImplementation "org.springframework:spring-test:${springVersion}"

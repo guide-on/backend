@@ -8,7 +8,7 @@ import java.sql.Timestamp;
 @Data
 public class CreditEvaluationResponse {
     // 기본 정보
-    private String memberId;  // member_id 컬럼에 대응
+    private Long sessionId;  // session_id 컬럼에 대응
     private Timestamp evaluationDate;
     
     // 상환이력 (28.4%)
