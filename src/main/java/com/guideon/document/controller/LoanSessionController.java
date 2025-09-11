@@ -25,15 +25,20 @@ public class LoanSessionController {
     public ResponseEntity<Map<String, Object>> createLoanSession(
             @RequestBody SessionRequest request) {
 
-        try {
-            log.info("대출 세션 생성 요청: businessId={}, policyId={}",
-                    request.getBusinessId(), request.getPolicyId());
+        Map<String, Object> docsResult = null;
+        boolean documentResultCreated = false;
 
-            Map<String, Object> result = loanSessionService.createLoanSession(request);
+        try {
+            Map<String, Object> result = loanSessionService.createLoanSession(request); // 세션 생성
+            docsResult = loanSessionService.createDocsResult(request);  // 세션 결과 생성
+            documentResultCreated = docsResult != null &&
+                    Boolean.TRUE.equals(docsResult.get("success"));
 
             Map<String, Object> response = new LinkedHashMap<>();
+
             response.put("success", true);
             response.putAll(result);
+            response.put("documentResultCreated", documentResultCreated);
 
             return ResponseEntity.ok(response);
 
