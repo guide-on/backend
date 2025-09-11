@@ -5,9 +5,7 @@ import com.guideon.document.domain.DocumentUploadsVO;
 import com.guideon.document.domain.LoanSessionVO;
 import com.guideon.document.domain.PolicyVO;
 import com.guideon.document.dto.DocumentSaveRequest;
-import com.guideon.document.dto.LoanSessionDTO;
 import com.guideon.document.dto.MyDataSyncRequest;
-import com.guideon.document.dto.SessionRequest;
 import com.guideon.document.mapper.BusinessInfoMapper;
 import com.guideon.document.mapper.DocumentUploadsMapper;
 import com.guideon.document.mapper.LoanSessionMapper;
@@ -414,5 +412,17 @@ public class DocumentServiceImpl implements DocumentService {
         file.transferTo(targetFile);
 
         return filePath;
+    }
+
+    @Override
+    public DocumentUploadsVO getDocument(Long sessionId, String group) {
+        // 1. 세션 검증
+        LoanSessionVO session = loanSessionMapper.selectById(sessionId);
+        if (session == null) {
+            throw new IllegalArgumentException("존재하지 않는 세션입니다. sessionId: " + sessionId);
+        }
+
+        // 2. 서류 목록 조회
+        return documentUploadsMapper.selectBySessionIdAndGroup(sessionId, group);
     }
 }
