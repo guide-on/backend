@@ -59,7 +59,7 @@ INSERT INTO simulation_result (
     total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
     plan_total_score
 ) VALUES (
-             2, 'CREDIT', 'KB 소상공인 행복 자금','IN_PROGRESS',
+             2, 'KB 소상공인 행복 자금', 'CREDIT', 'IN_PROGRESS',
              'COMPLETED', 2001,
              750, 740, 730, NOW(),
              NULL
@@ -72,7 +72,7 @@ INSERT INTO simulation_result (
     total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
     plan_total_score
 ) VALUES (
-             3, 'RESULT', '정부 지원 자금', 'COMPLETED',
+             3, '정부 지원 자금', 'RESULT', 'COMPLETED',
              'COMPLETED', 2002,
              890, 885, 870, NOW(),
              80.00
