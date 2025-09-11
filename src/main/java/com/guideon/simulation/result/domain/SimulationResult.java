@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Data
 public class SimulationResult {
-    private Long id;
+    private Long sessionId;
     private Long memberId;
     private String fundName;
 
@@ -21,7 +21,6 @@ public class SimulationResult {
 
     // docs
     private DocSessionStatus docSessionStatus;
-    private Long businessId;
 
     // credit
     private Integer totalCreditScore;

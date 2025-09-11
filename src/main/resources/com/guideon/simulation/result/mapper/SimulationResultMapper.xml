@@ -3,19 +3,19 @@
 <mapper namespace="com.guideon.simulation.result.mapper.SimulationResultMapper">
 
     <sql id="BaseColumns">
-        id, member_id, fund_name,
-    current_step, overall_status,
-    started_at, updated_at,
-    doc_session_status, business_id,
-    total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
-    plan_total_score,
-    doc_score_pct, credit_score_pct, plan_score_pct, total_probability_pct
+        session_id, member_id, fund_name,
+        current_step, overall_status,
+        started_at, updated_at,
+        doc_session_status,
+        total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
+        plan_total_score,
+        doc_score_pct, credit_score_pct, plan_score_pct, total_probability_pct
     </sql>
 
     <resultMap id="SimulationResultMap" type="com.guideon.simulation.result.domain.SimulationResult">
-        <id     column="id"                 property="id"/>
+        <id     column="session_id"         property="sessionId"/>
         <result column="member_id"          property="memberId"/>
-        <result column="fund_name"          property="fundName"/> <!-- ✅ 추가 -->
+        <result column="fund_name"          property="fundName"/>
         <result column="current_step"       property="currentStep"
                 javaType="com.guideon.simulation.result.enums.CurrentStep"/>
         <result column="overall_status"     property="overallStatus"
@@ -25,7 +25,6 @@
 
         <result column="doc_session_status" property="docSessionStatus"
                 javaType="com.guideon.simulation.result.enums.DocSessionStatus"/>
-        <result column="business_id"        property="businessId"/>
 
         <result column="total_credit_score"       property="totalCreditScore"/>
         <result column="hybrid_credit_score"      property="hybridCreditScore"/>
@@ -52,10 +51,10 @@
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
-    <select id="findByIdAndMember" resultMap="SimulationResultMap">
+    <select id="findBySessionIdAndMember" resultMap="SimulationResultMap">
         SELECT <include refid="BaseColumns"/>
         FROM simulation_result
-        WHERE id = #{id} AND member_id = #{memberId}
+        WHERE session_id = #{sessionId} AND member_id = #{memberId}
         LIMIT 1
     </select>
 

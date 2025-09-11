@@ -75,18 +75,18 @@
         WHERE business_id = #{businessId} AND policy_id = #{policyId}
     </select>
 
-    <!-- DocumentResult 초기 생성 (임시로 simulation_result에 저장) -->
+    <!-- DocumentResult 초기 생성 -->
     <insert id="insertDocumentResultToSimulation">
         INSERT INTO simulation_result (
-            member_id, fund_name, current_step, overall_status,
-            doc_session_status, business_id
+            session_id, member_id, fund_name, current_step, overall_status,
+            doc_session_status
         ) VALUES (
+                     #{sessionId},
                      #{memberId},
                      #{documentResult.policyName},
                      #{documentResult.step},
                      'IN_PROGRESS',
-                     #{documentResult.sessionStatus},
-                     #{businessId}
+                     #{documentResult.sessionStatus}
                  )
     </insert>
 
@@ -94,7 +94,19 @@
     <update id="updateDocumentResultInSimulation">
         UPDATE simulation_result
         SET doc_session_status = #{documentResult.sessionStatus},
+            current_step = CASE
+                               WHEN #{documentResult.sessionStatus} = 'COMPLETED' AND current_step = 'DOCS'
+                                   THEN 'CREDIT'
+                               ELSE current_step
+                END,
             updated_at = NOW()
-        WHERE business_id = #{businessId}
+        WHERE session_id = #{sessionId}
     </update>
+
+    <!-- 현재 단계 조회 -->
+    <select id="selectSimulationCurrentStep" parameterType="long" resultType="string">
+        SELECT current_step
+        FROM simulation_result
+        WHERE session_id = #{sessionId}
+    </select>
 </mapper>

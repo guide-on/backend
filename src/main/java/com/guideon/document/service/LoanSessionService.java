@@ -24,4 +24,9 @@ public interface LoanSessionService {
      */
     void updateDocumentResult(Long sessionId, DocumentResultDTO documentResult);
 
+    /**
+     * 현재 진행 단계 조회
+     */
+    String getCurrentStep(Long businessId);
+
 }

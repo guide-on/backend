@@ -102,7 +102,6 @@ public class LoanSessionServiceImpl implements LoanSessionService {
      */
     @Override
     public Map<String, Object> createDocsResult(SessionRequest request) {
-
         // 1. 기존 세션 조회
         LoanSessionVO session = loanSessionMapper.selectByBusinessIdAndPolicyId(
                 request.getBusinessId(), request.getPolicyId());
@@ -111,10 +110,10 @@ public class LoanSessionServiceImpl implements LoanSessionService {
             throw new IllegalArgumentException("해당 세션을 찾을 수 없습니다.");
         }
 
-        // 2. 정책자금 정보 조회 (정책명 가져오기)
+        // 2. 정책자금 정보 조회
         PolicyVO policy = policyMapper.selectByPolicyId(request.getPolicyId());
 
-        // 3. 사업체 정보 조회 (memberId 가져오기)
+        // 3. 사업체 정보 조회
         BusinessInfoVO businessInfo = businessInfoMapper.selectByBusinessId(request.getBusinessId());
         if (businessInfo == null) {
             throw new IllegalArgumentException("사업체 정보를 찾을 수 없습니다.");
@@ -128,18 +127,18 @@ public class LoanSessionServiceImpl implements LoanSessionService {
                 .step("DOCS")
                 .build();
 
-        // 5. simulation_result 테이블에 저장
+        // 5. simulation_result 테이블에 저장 (session_id를 PK로 사용)
         boolean success = false;
         try {
             int result = loanSessionMapper.insertDocumentResultToSimulation(
-                    request.getBusinessId(),
+                    session.getId(), // sessionId를 PK로 사용
                     businessInfo.getMemberId(),
                     documentResult
             );
             success = (result > 0);
-            log.info("DocumentResult 저장 완료: businessId={}, success={}", request.getBusinessId(), success);
+            log.info("DocumentResult 저장 완료: sessionId={}, success={}", session.getId(), success);
         } catch (Exception e) {
-            log.error("DocumentResult 저장 실패: businessId={}", request.getBusinessId(), e);
+            log.error("DocumentResult 저장 실패: sessionId={}", session.getId(), e);
             success = false;
         }
 
@@ -147,8 +146,7 @@ public class LoanSessionServiceImpl implements LoanSessionService {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("sessionId", session.getId());
         response.put("documentResult", documentResult);
-
-        log.info("서류 결과 생성 완료: sessionId={}", session.getId());
+        response.put("success", success);
 
         return response;
     }
@@ -158,7 +156,6 @@ public class LoanSessionServiceImpl implements LoanSessionService {
      */
     @Override
     public void updateDocumentResult(Long sessionId, DocumentResultDTO documentResult) {
-
         // 1. 세션 존재 확인
         LoanSessionVO session = loanSessionMapper.selectById(sessionId);
         if (session == null) {
@@ -177,7 +174,7 @@ public class LoanSessionServiceImpl implements LoanSessionService {
         // 4. simulation_result 테이블 업데이트
         try {
             int result = loanSessionMapper.updateDocumentResultInSimulation(
-                    session.getBusinessId(),
+                    sessionId, // sessionId로 직접 업데이트
                     documentResult
             );
 
@@ -193,6 +190,20 @@ public class LoanSessionServiceImpl implements LoanSessionService {
         }
     }
 
+    /**
+     * 현재 가이드의 단계 조회
+     */
+    @Override
+    public String getCurrentStep(Long sessionId) {
+        String currentStep = loanSessionMapper.selectSimulationCurrentStep(sessionId);
+
+        if (currentStep == null) {
+            throw new IllegalArgumentException("해당 세션의 시뮬레이션 정보를 찾을 수 없습니다. sessionId: " + sessionId);
+        }
+
+        log.info("현재 단계 조회: sessionId={}, currentStep={}", sessionId, currentStep);
+        return currentStep;
+    }
     /**
      * 세션의 현재 진행률을 계산하고 loan_sessions 테이블 업데이트
      * @param sessionId

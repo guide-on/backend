@@ -1,6 +1,6 @@
 -- MySQL 8.x 기준
 CREATE TABLE simulation_result (
-                                   id                        BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                   session_id                BIGINT PRIMARY KEY COMMENT 'loan_sessions.id와 1:1 매핑',
                                    member_id                 BIGINT       NOT NULL,
                                    fund_name                 VARCHAR(200) NULL  COMMENT '대상 자금/상품명',
 
@@ -12,7 +12,6 @@ CREATE TABLE simulation_result (
 
     -- 서류 단계
                                    doc_session_status        VARCHAR(12)  NULL  COMMENT '서류 세션 상태(IN_PROGRESS/COMPLETED)',
-                                   business_id               BIGINT       NULL  COMMENT 'user_business_info 참조용(하드 FK 없음)',
 
     -- 신용평가 단계
                                    total_credit_score        INT          NULL  COMMENT '0~1000',
@@ -37,6 +36,8 @@ CREATE TABLE simulation_result (
 
                                    CONSTRAINT fk_sim_result_member
                                        FOREIGN KEY (member_id) REFERENCES member(member_id) ON DELETE RESTRICT,
+                                   CONSTRAINT fk_sim_result_session
+                                       FOREIGN KEY (session_id) REFERENCES loan_sessions(id) ON DELETE CASCADE,
 
                                    CONSTRAINT chk_current_step
                                        CHECK (current_step IN ('DOCS','CREDIT','PLAN','RESULT')),
@@ -49,38 +50,3 @@ CREATE TABLE simulation_result (
 -- 조회 최적화 인덱스
 CREATE INDEX ix_sim_result_member ON simulation_result(member_id);
 CREATE INDEX ix_sim_result_status ON simulation_result(overall_status, current_step);
-
-
--- 예시 데이터 저장
--- member_id = 2 : 서류 완료, 신용평가 단계 진행중
-INSERT INTO simulation_result (
-    member_id, fund_name, current_step, overall_status,
-    doc_session_status, business_id,
-    total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
-    plan_total_score
-) VALUES (
-             2, 'KB 소상공인 행복 자금', 'CREDIT', 'IN_PROGRESS',
-             'COMPLETED', 2001,
-             750, 740, 730, NOW(),
-             NULL
-         );
-
--- member_id = 3 : 전 단계 완료, 결과까지 확정
-INSERT INTO simulation_result (
-    member_id, fund_name, current_step, overall_status,
-    doc_session_status, business_id,
-    total_credit_score, hybrid_credit_score, traditional_credit_score, credit_last_updated,
-    plan_total_score
-) VALUES (
-             3, '정부 지원 자금', 'RESULT', 'COMPLETED',
-             'COMPLETED', 2002,
-             890, 885, 870, NOW(),
-             80.00
-         );
-
--- 확인
-SELECT id, member_id, current_step, overall_status,
-       doc_score_pct, credit_score_pct, plan_score_pct, total_probability_pct
-FROM simulation_result
-WHERE member_id IN (2,3)
-ORDER BY id;

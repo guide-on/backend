@@ -35,15 +35,20 @@ public interface LoanSessionMapper {
                                                 @Param("policyId") Long policyId);
 
     /**
-     * DocumentResult를 simulation_result 테이블에 저장 (임시)
+     * DocumentResult를 simulation_result 테이블에 저장
      */
-    // 매퍼 인터페이스
-    int insertDocumentResultToSimulation(@Param("businessId") Long businessId,
+    int insertDocumentResultToSimulation(@Param("sessionId") Long sessionId,
                                          @Param("memberId") Long memberId,
                                          @Param("documentResult") DocumentResultDTO documentResult);
+
     /**
-     * DocumentResult를 simulation_result 테이블에 업데이트 (임시)
+     * DocumentResult를 simulation_result 테이블에 업데이트
      */
-    int updateDocumentResultInSimulation(@Param("businessId") Long businessId,
+    int updateDocumentResultInSimulation(@Param("sessionId") Long sessionId,
                                          @Param("documentResult") DocumentResultDTO documentResult);
+
+    /**
+     * 시뮬레이션 결과의 현재 단계 조회
+     */
+    String selectSimulationCurrentStep(Long sessionId);
 }
