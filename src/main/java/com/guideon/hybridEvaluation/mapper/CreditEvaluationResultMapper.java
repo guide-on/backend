@@ -65,4 +65,10 @@ public interface CreditEvaluationResultMapper {
      * @return 전체 개수
      */
     int countCreditEvaluationResults();
+
+    /**
+     * 신용평가 결과를 simulation_result 테이블에 반영 (traditional_credit_score만)
+     */
+    int updateSimulationResultWithCreditScore(@Param("sessionId") Long sessionId,
+                                              @Param("totalScore") Integer totalScore);
 }

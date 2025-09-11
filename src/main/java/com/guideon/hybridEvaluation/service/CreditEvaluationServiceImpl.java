@@ -73,17 +73,29 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
                     // 신용점수 계산 및 저장
                     try {
                         CreditEvaluationResult scoreResult = creditScoreCalculationService.calculateCreditScore(savedData);
-                        
+
                         // 기존 결과가 있다면 삭제 후 새로 저장
                         if (creditEvaluationResultMapper.existsCreditEvaluationResult(scoreResult.getSessionId())) {
                             creditEvaluationResultMapper.deleteCreditEvaluationResult(scoreResult.getSessionId());
                             log.info("기존 신용점수 결과 삭제됨: sessionId={}", scoreResult.getSessionId());
                         }
-                        
+
+                        // credit_evaluation_result 테이블에 저장
                         creditEvaluationResultMapper.insertCreditEvaluationResult(scoreResult);
-                        log.info("신용점수 계산 및 저장 완료: sessionId={}, totalScore={}", 
+                        log.info("신용점수 계산 및 저장 완료: sessionId={}, totalScore={}",
                                 scoreResult.getSessionId(), scoreResult.getTotalScore());
-                        
+
+                        // simulation_result 테이블에 traditional_credit_score만 반영 및 단계 변경
+                        int updateResult = creditEvaluationResultMapper.updateSimulationResultWithCreditScore(
+                                scoreResult.getSessionId(), scoreResult.getTotalScore());
+
+                        if (updateResult > 0) {
+                            log.info("simulation_result 테이블 업데이트 완료: sessionId={}, traditional_credit_score={}, step=CREDIT->PLAN",
+                                    scoreResult.getSessionId(), scoreResult.getTotalScore());
+                        } else {
+                            log.warn("simulation_result 테이블 업데이트 실패: sessionId={}", scoreResult.getSessionId());
+                        }
+
                     } catch (Exception scoreException) {
                         log.error("신용점수 계산 중 오류 발생: {}", scoreException.getMessage(), scoreException);
                         // 신용점수 계산 실패해도 신용평가 생성은 성공으로 처리
