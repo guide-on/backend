@@ -15,9 +15,14 @@ public interface StoreSummaryMapper {
     int insertStoreSummary(StoreSummary storeSummary);
 
     /**
-     * 매장 요약 데이터 수정
+     * 매장 요약 데이터 수정 (매출 관련 필드만)
      */
     int updateStoreSummary(StoreSummary storeSummary);
+
+    /**
+     * 매장 요약 데이터 전체 수정 (모든 필드)
+     */
+    int updateStoreSummaryFull(StoreSummary storeSummary);
 
     /**
      * 특정 회원의 특정 데이터 조회

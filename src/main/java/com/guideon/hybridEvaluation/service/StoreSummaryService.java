@@ -21,4 +21,9 @@ public interface StoreSummaryService {
      * store_summary 테이블에 기본값 데이터 생성
      */
     void createDefaultStoreSummary(Long sessionId);
+
+    /**
+     * 현금흐름 건전성 관련 데이터 업데이트
+     */
+    CommonResponseDTO<StoreSummaryResponse> updateCashflowData(Long sessionId);
 }
