@@ -30,6 +30,7 @@ public class LoanSessionServiceImpl implements LoanSessionService {
     private final PolicyMapper policyMapper;
     private final LoanSessionMapper loanSessionMapper;
     private final DocumentUploadsMapper documentUploadsMapper;
+    private final DocumentParsingService documentParsingService;
 
 
     @Override
@@ -200,29 +201,71 @@ public class LoanSessionServiceImpl implements LoanSessionService {
         try {
             log.info("진행률 자동 계산 시작: sessionId={}", sessionId);
 
-            // 1. 서류 목록 조회
+            // 1. 세션 정보 조회
+            LoanSessionVO session = loanSessionMapper.selectById(sessionId);
+            if (session == null) return;
+
+            // 2. 정책자금 및 사업체 정보 조회
+            PolicyVO policy = policyMapper.selectByPolicyId(session.getPolicyId());
+            BusinessInfoVO businessInfo = businessInfoMapper.selectByBusinessId(session.getBusinessId());
+            if (policy == null || businessInfo == null) return;
+
+            // 3. 서류 목록 조회
             List<DocumentUploadsVO> documents = documentUploadsMapper.selectBySessionId(sessionId);
-            if (documents.isEmpty()) {
-                log.info("서류가 없어서 진행률 계산 생략: sessionId={}", sessionId);
-                return;
+            if (documents.isEmpty()) return;
+
+            // 4. JSON 파싱
+            List<Map<String, Object>> documentGroups = documentParsingService.parseRequiredDocuments(
+                    policy.getRequiredDocuments(), businessInfo);
+
+            // 5. 서류 매핑
+            Map<String, DocumentUploadsVO> documentsMap = documents.stream()
+                    .collect(Collectors.toMap(
+                            doc -> doc.getDocumentGroup() + "_" + doc.getDocumentName(),
+                            doc -> doc
+                    ));
+
+            // 6. 올바른 진행률 계산 (getDocumentStatus와 동일한 로직)
+            int totalRequirements = 0;
+            int completedRequirements = 0;
+
+            for (Map<String, Object> group : documentGroups) {
+                String groupKey = (String) group.get("groupKey");
+                Integer minSelect = (Integer) group.get("minSelect");
+                List<Map<String, Object>> docs = (List<Map<String, Object>>) group.get("documents");
+
+                if (docs != null && minSelect != null) {
+                    totalRequirements += minSelect;  // 각 그룹의 minSelect 합
+
+                    int groupCompletedCount = 0;
+
+                    for (Map<String, Object> doc : docs) {
+                        String docName = (String) doc.get("name");
+                        String mapKey = groupKey + "_" + docName;
+
+                        DocumentUploadsVO uploadedDoc = documentsMap.get(mapKey);
+                        if (uploadedDoc != null) {
+                            String status = uploadedDoc.getUploadStatus();
+                            if ("UPLOADED".equals(status) || "VALIDATED".equals(status)) {
+                                groupCompletedCount++;
+                            }
+                        }
+                    }
+
+                    // 그룹별 완료 수는 최소 선택 수로 제한
+                    completedRequirements += Math.min(groupCompletedCount, minSelect);
+                }
             }
 
-            // 2. 완료된 서류 카운트
-            int totalDocs = documents.size();
-            int completedDocs = (int) documents.stream()
-                    .filter(doc -> "UPLOADED".equals(doc.getUploadStatus()) ||
-                            "VALIDATED".equals(doc.getUploadStatus()))
-                    .count();
+            // 7. 진행률 계산
+            double progressPercentage = totalRequirements > 0 ?
+                    Math.round((double) completedRequirements / totalRequirements * 100.0 * 100.0) / 100.0 : 0.0;
 
-            // 3. 진행률 계산
-            double progressPercentage = totalDocs > 0 ?
-                    Math.round((double) completedDocs / totalDocs * 100.0 * 100.0) / 100.0 : 0.0;
-
-            // 4. loan_sessions 테이블 업데이트
-            loanSessionMapper.updateSessionProgress(sessionId, totalDocs, completedDocs, progressPercentage);
+            // 8. loan_sessions 테이블 업데이트
+            loanSessionMapper.updateSessionProgress(sessionId, totalRequirements, completedRequirements, progressPercentage);
 
             log.info("진행률 자동 계산 완료: sessionId={}, progress={}% ({}/{})",
-                    sessionId, progressPercentage, completedDocs, totalDocs);
+                    sessionId, progressPercentage, completedRequirements, totalRequirements);
 
         } catch (Exception e) {
             log.error("진행률 계산 실패: sessionId={}", sessionId, e);
