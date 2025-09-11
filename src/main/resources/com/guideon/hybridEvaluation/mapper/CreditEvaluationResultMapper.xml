@@ -86,4 +86,17 @@
         FROM credit_evaluation_result
     </select>
 
+    <!-- simulation_result 테이블의 traditional_credit_score만 업데이트 -->
+    <update id="updateSimulationResultWithCreditScore">
+        UPDATE simulation_result
+        SET traditional_credit_score = #{totalScore},
+            credit_last_updated = NOW(),
+            current_step = CASE
+                               WHEN current_step = 'CREDIT' THEN 'PLAN'
+                               ELSE current_step
+                END,
+            updated_at = NOW()
+        WHERE session_id = #{sessionId}
+    </update>
+
 </mapper>
