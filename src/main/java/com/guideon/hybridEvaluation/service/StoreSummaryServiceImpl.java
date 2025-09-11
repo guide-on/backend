@@ -356,6 +356,72 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
         return storeSummary;
     }
     
+    @Override
+    @Transactional
+    public CommonResponseDTO<StoreSummaryResponse> updateCashflowData(Long sessionId) {
+        try {
+            log.info("현금흐름 데이터 업데이트 시작: sessionId={}", sessionId);
+            
+            // 세션 ID 검증
+            if (sessionId == null) {
+                throw new BadRequestException("세션 ID는 필수 값입니다.");
+            }
+            
+            // 기존 데이터 조회
+            List<StoreSummary> existingData = storeSummaryMapper.selectStoreSummaryBySessionId(sessionId, 1, 0);
+            if (existingData.isEmpty()) {
+                throw new BadRequestException("업데이트를 실패하였습니다. 해당 세션 ID에 대한 매장 요약 데이터가 존재하지 않습니다.");
+            }
+            
+            StoreSummary storeSummary = existingData.get(0);
+            
+            // 현금흐름 관련 하드코딩 데이터로 업데이트
+            storeSummary.setOperatingProfit(new BigDecimal("5000000.00"));              // 월별 영업이익 (원)
+            storeSummary.setCostOfGoodsSold(new BigDecimal("8000000.00"));             // 월별 매출원가 (원)
+            storeSummary.setTotalSalary(new BigDecimal("4000000.00"));                 // 월별 급여총액 (원)
+            storeSummary.setRentExpense(new BigDecimal("2000000.00"));                 // 월별 임차료 (원)
+            storeSummary.setOtherExpenses(new BigDecimal("1000000.00"));               // 월별 기타비용 (원)
+            storeSummary.setOperatingProfitRatio(new BigDecimal("25.00"));             // 영업이익률 (%)
+            storeSummary.setCogsRatio(new BigDecimal("40.00"));                        // 매출원가율 (%)
+            storeSummary.setSalaryRatio(new BigDecimal("20.00"));                      // 급여비율 (%)
+            storeSummary.setRentRatio(new BigDecimal("10.00"));                        // 임차료율 (%)
+            storeSummary.setCashPaymentRatioDetail(new BigDecimal("15.50"));           // 현금 결제 비율 (상세) (%)
+            storeSummary.setCardPaymentRatioDetail(new BigDecimal("80.00"));           // 카드 결제 비율 (상세) (%)
+            storeSummary.setOtherPaymentRatio(new BigDecimal("4.50"));                 // 기타 결제 비율 (%)
+            storeSummary.setWeightedAvgCashPeriod(new BigDecimal("2.50"));             // 가중평균 현금화 기간 (일)
+            storeSummary.setCashflowCv(new BigDecimal("0.35"));                        // 현금흐름 변동계수 (CV)
+            storeSummary.setAvgAccountBalance(new BigDecimal("15000000.00"));          // 평균 계좌 잔액 (원)
+            storeSummary.setMinBalanceMaintenanceRatio(new BigDecimal("85.00"));       // 최소 잔액 유지 비율 (%)
+            storeSummary.setExcessiveWithdrawalFrequency(new BigDecimal("2.00"));      // 과다 인출 빈도 (월별 횟수)
+            storeSummary.setRentPaymentComplianceRate(new BigDecimal("100.00"));       // 임대료 납부 준수율 (%)
+            storeSummary.setUtilityPaymentComplianceRate(new BigDecimal("95.00"));     // 공과금 납부 준수율 (%)
+            storeSummary.setSalaryPaymentRegularity(new BigDecimal("100.00"));         // 급여 지급 정상성 (%)
+            storeSummary.setTaxPaymentIntegrity(new BigDecimal("90.00"));              // 세금 납부 성실도 (%)
+            
+            // 업데이트 시간 설정
+            storeSummary.setUpdatedDttm(new Timestamp(System.currentTimeMillis()));
+            storeSummary.setLastUpdatedDttm(new Timestamp(System.currentTimeMillis()));
+            
+            // 데이터베이스 업데이트 (전체 필드 업데이트)
+            log.info("현금흐름 데이터 데이터베이스 업데이트 시작...");
+            int updateResult = storeSummaryMapper.updateStoreSummaryFull(storeSummary);
+            log.info("현금흐름 데이터 UPDATE 결과: {}", updateResult);
+            
+            if (updateResult == 0) {
+                throw new BadRequestException("현금흐름 데이터 업데이트에 실패했습니다.");
+            }
+            
+            StoreSummaryResponse response = convertToResponse(storeSummary);
+            
+            log.info("현금흐름 데이터 업데이트 완료: sessionId={}", sessionId);
+            return CommonResponseDTO.success("현금흐름 건전성 관련 데이터가 성공적으로 업데이트되었습니다.", response);
+            
+        } catch (Exception e) {
+            log.error("현금흐름 데이터 업데이트 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("현금흐름 데이터 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
     private StoreSummaryResponse convertToResponse(StoreSummary storeSummary) {
         if (storeSummary == null) {
             return null;
