@@ -22,4 +22,9 @@ public interface CreditEvaluationService {
      * 하이브리드 평가 데이터 초기화 (store_summary, credit_evaluation 테이블에 기본값 생성)
      */
     CommonResponseDTO<String> initializeHybridEvaluation(Long sessionId);
+
+    /**
+     * 신용평가 관련 데이터 업데이트
+     */
+    CommonResponseDTO<CreditEvaluationResponse> updateCreditData(Long sessionId);
 }
