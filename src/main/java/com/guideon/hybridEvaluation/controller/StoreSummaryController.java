@@ -53,4 +53,17 @@ public class StoreSummaryController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/update-cashflow/{sessionId}")
+    @ApiOperation(value = "현금흐름 데이터 업데이트", notes = "계좌 연결 후 현금흐름 건전성 관련 데이터를 업데이트합니다.")
+    public ResponseEntity<CommonResponseDTO<StoreSummaryResponse>> updateCashflowData(
+            @ApiParam(value = "세션 ID", required = true) @PathVariable Long sessionId) {
+
+        log.info("현금흐름 데이터 업데이트 요청: sessionId={}", sessionId);
+
+        CommonResponseDTO<StoreSummaryResponse> response =
+            storeSummaryService.updateCashflowData(sessionId);
+
+        return ResponseEntity.ok(response);
+    }
 }
