@@ -27,6 +27,6 @@ public interface LoanSessionService {
     /**
      * 현재 진행 단계 조회
      */
-    String getCurrentStep(Long businessId);
+    String getCurrentStep(Long sessionId);
 
 }

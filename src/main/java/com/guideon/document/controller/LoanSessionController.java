@@ -61,17 +61,17 @@ public class LoanSessionController {
     /**
      * 현재 진행 단계 조회
      */
-    @GetMapping("/step/{businessId}")
+    @GetMapping("/step/{sessionId}")
     public ResponseEntity<Map<String, Object>> getCurrentStep(
-            @PathVariable Long businessId) {
+            @PathVariable Long sessionId) {
 
         try {
-            String currentStep = loanSessionService.getCurrentStep(businessId);
+            String currentStep = loanSessionService.getCurrentStep(sessionId);
 
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "currentStep", currentStep,
-                    "businessId", businessId
+                    "sessionId", sessionId
             ));
 
         } catch (IllegalArgumentException e) {
