@@ -422,6 +422,58 @@ public class StoreSummaryServiceImpl implements StoreSummaryService {
         }
     }
 
+    @Override
+    @Transactional
+    public CommonResponseDTO<StoreSummaryResponse> updateEsgData(Long sessionId, Double energyEffRatio) {
+        try {
+            log.info("ESG 데이터 업데이트 시작: sessionId={}, energyEffRatio={}", sessionId, energyEffRatio);
+            
+            // 세션 ID 검증
+            if (sessionId == null) {
+                throw new BadRequestException("세션 ID는 필수 값입니다.");
+            }
+            
+            if (energyEffRatio == null) {
+                throw new BadRequestException("에너지 효율 기기 비율은 필수 값입니다.");
+            }
+            
+            // 기존 데이터 조회
+            List<StoreSummary> existingData = storeSummaryMapper.selectStoreSummaryBySessionId(sessionId, 1, 0);
+            if (existingData.isEmpty()) {
+                throw new BadRequestException("업데이트를 실패하였습니다. 해당 세션 ID에 대한 매장 요약 데이터가 존재하지 않습니다.");
+            }
+            
+            StoreSummary storeSummary = existingData.get(0);
+            
+            // ESG 관련 데이터 업데이트
+            storeSummary.setEnergyEffApplianceRatio(new BigDecimal(energyEffRatio.toString()));  // 에너지 효율 기기 비율
+            storeSummary.setParticipateEnergyEffSupport(true);                                    // 에너지효율향상 지원사업 참여 여부 (1)
+            storeSummary.setParticipateHighEffEquipSupport(true);                                 // 고효율기기 구매 지원사업 참여 여부 (1)
+            
+            // 업데이트 시간 설정
+            storeSummary.setUpdatedDttm(new Timestamp(System.currentTimeMillis()));
+            storeSummary.setLastUpdatedDttm(new Timestamp(System.currentTimeMillis()));
+            
+            // 데이터베이스 업데이트 (전체 필드 업데이트)
+            log.info("ESG 데이터 데이터베이스 업데이트 시작...");
+            int updateResult = storeSummaryMapper.updateStoreSummaryFull(storeSummary);
+            log.info("ESG 데이터 UPDATE 결과: {}", updateResult);
+            
+            if (updateResult == 0) {
+                throw new BadRequestException("ESG 데이터 업데이트에 실패했습니다.");
+            }
+            
+            StoreSummaryResponse response = convertToResponse(storeSummary);
+            
+            log.info("ESG 데이터 업데이트 완료: sessionId={}", sessionId);
+            return CommonResponseDTO.success("ESG 관련 데이터가 성공적으로 업데이트되었습니다.", response);
+            
+        } catch (Exception e) {
+            log.error("ESG 데이터 업데이트 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("ESG 데이터 업데이트 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
+
     private StoreSummaryResponse convertToResponse(StoreSummary storeSummary) {
         if (storeSummary == null) {
             return null;

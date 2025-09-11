@@ -26,4 +26,9 @@ public interface StoreSummaryService {
      * 현금흐름 건전성 관련 데이터 업데이트
      */
     CommonResponseDTO<StoreSummaryResponse> updateCashflowData(Long sessionId);
+
+    /**
+     * ESG 관련 데이터 업데이트
+     */
+    CommonResponseDTO<StoreSummaryResponse> updateEsgData(Long sessionId, Double energyEffRatio);
 }
