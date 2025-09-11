@@ -49,6 +49,11 @@
         SET required_documents = #{requiredDocuments},
             submitted_documents = #{submittedDocuments},
             progress_percentage = #{progressPercentage},
+            session_status = CASE
+                                 WHEN #{submittedDocuments} >= #{requiredDocuments} AND #{requiredDocuments} > 0
+                                     THEN 'COMPLETED'
+                                 ELSE 'IN_PROGRESS'
+                END,
             updated_at = NOW()
         WHERE id = #{sessionId}
     </update>
@@ -70,4 +75,26 @@
         WHERE business_id = #{businessId} AND policy_id = #{policyId}
     </select>
 
+    <!-- DocumentResult 초기 생성 (임시로 simulation_result에 저장) -->
+    <insert id="insertDocumentResultToSimulation">
+        INSERT INTO simulation_result (
+            member_id, fund_name, current_step, overall_status,
+            doc_session_status, business_id
+        ) VALUES (
+                     #{memberId},
+                     #{documentResult.policyName},
+                     #{documentResult.step},
+                     'IN_PROGRESS',
+                     #{documentResult.sessionStatus},
+                     #{businessId}
+                 )
+    </insert>
+
+    <!-- DocumentResult 업데이트 -->
+    <update id="updateDocumentResultInSimulation">
+        UPDATE simulation_result
+        SET doc_session_status = #{documentResult.sessionStatus},
+            updated_at = NOW()
+        WHERE business_id = #{businessId}
+    </update>
 </mapper>

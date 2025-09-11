@@ -1,8 +1,10 @@
 package com.guideon.document.controller;
 
+import com.guideon.document.dto.DocumentResultDTO;
 import com.guideon.document.dto.MyDataSyncRequest;
 import com.guideon.document.dto.SessionRequest;
 import com.guideon.document.service.DocumentService;
+import com.guideon.document.service.LoanSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.*;
 public class DocumentController {
 
     private final DocumentService documentService;
+    private final LoanSessionService loanSessionService;
 
     /**
      * 세션별 필요 서류 목록 조회
@@ -66,6 +69,10 @@ public class DocumentController {
 
             Map<String, Object> result = documentService.syncWithMyData(sessionId, request);
 
+            // 연동 완료 시에 결과 반영
+            DocumentResultDTO documentResult = new DocumentResultDTO();
+            loanSessionService.updateDocumentResult(sessionId, documentResult);
+
             return ResponseEntity.ok(result);
 
         } catch (InterruptedException e) {
@@ -87,8 +94,10 @@ public class DocumentController {
         try {
             log.info("서류 상태 조회 요청: sessionId={}", sessionId);
 
+            // 1. 서류 상태 조회
             Map<String, Object> result = documentService.getDocumentStatus(sessionId);
 
+            // 2. 응답 구성
             Map<String, Object> response = new LinkedHashMap<>();
             response.put("success", true);
             response.putAll(result);
@@ -120,10 +129,14 @@ public class DocumentController {
             @RequestPart("file") MultipartFile file) {
 
         try {
+            // 1. 파일 업로드
             Long documentId = Long.parseLong(documentIdStr);  // String을 Long으로 변환
-            log.info("파일 업로드 요청: sessionId={}, documentId={}", sessionId, documentId);
-
             Map<String, Object> result = documentService.uploadFile(sessionId, documentId, file);
+
+            // 2. 업로드 완료 시에 결과 반영
+            DocumentResultDTO documentResult = new DocumentResultDTO();
+            loanSessionService.updateDocumentResult(sessionId, documentResult);
+
             return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
