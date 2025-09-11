@@ -12,6 +12,7 @@ import com.guideon.simulation.result.dto.SimulationResultListDto;
 import com.guideon.simulation.result.exception.NotFoundException;
 import com.guideon.simulation.result.mapper.SimulationResultMapper;
 import com.guideon.simulation.result.service.SimulationResultService;
+import com.guideon.simulation.result.dto.HomeSummaryDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -80,5 +81,15 @@ public class SimulationResultServiceImpl implements SimulationResultService {
 
     private static String safeEnum(Enum<?> e) {
         return e == null ? null : e.name();
+    }
+
+    @Override
+    public HomeSummaryDto getHomeSummary(Long memberId) {
+        long joined = mapper.countByMember(memberId);
+        long inProgress = mapper.countInProgressByMember(memberId);
+        // 최근 완료건의 total_probability_pct(소수) -> 반올림 정수
+        Double recent = mapper.findLatestCompletedProbability(memberId);
+        Integer recentRounded = (recent == null) ? null : (int)Math.round(recent);
+        return new HomeSummaryDto(joined, inProgress, recentRounded);
     }
 }

@@ -59,4 +59,17 @@
         LIMIT 1
     </select>
 
+    <select id="countInProgressByMember" resultType="long">
+        SELECT COUNT(*) FROM simulation_result
+        WHERE member_id = #{memberId} AND overall_status = 'IN_PROGRESS'
+    </select>
+
+    <select id="findLatestCompletedProbability" resultType="double">
+        SELECT total_probability_pct
+        FROM simulation_result
+        WHERE member_id = #{memberId} AND overall_status = 'COMPLETED'
+        ORDER BY updated_at DESC
+            LIMIT 1
+    </select>
+
 </mapper>
