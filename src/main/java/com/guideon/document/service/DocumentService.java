@@ -1,7 +1,7 @@
 package com.guideon.document.service;
 
+import com.guideon.document.domain.DocumentUploadsVO;
 import com.guideon.document.dto.MyDataSyncRequest;
-import com.guideon.document.dto.SessionRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -34,4 +34,11 @@ public interface DocumentService {
      * 파일 직접 업로드
      */
     Map<String, Object> uploadFile(Long sessionId, Long documentId, MultipartFile file);
+
+    /**
+     * 파일 조회
+     * @param sessionId
+     * @return
+     */
+    DocumentUploadsVO getDocument(Long sessionId, String group);
 }

@@ -13,10 +13,15 @@
         <package name="com.guideon.member.domain"/>
         <package name="com.guideon.document.domain"/>
         <package name="com.guideon.hybridEvaluation.domain"/>
+        <package name="com.guideon.plan.domain"/>
     </typeAliases>
 
     <typeHandlers>
         <typeHandler handler="com.guideon.member.handler.GenderTypeHandler"
                     javaType="com.guideon.member.domain.Gender"/>
+        <typeHandler
+                handler="com.guideon.plan.handler.StringListJsonTypeHandler"
+                javaType="java.util.List"
+                jdbcType="OTHER"/>
     </typeHandlers>
 </configuration>

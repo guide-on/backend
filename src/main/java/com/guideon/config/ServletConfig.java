@@ -35,6 +35,7 @@ import java.util.List;
         "com.guideon.common.exception",   // GlobalExceptionHandler
         "com.guideon.funds",
         "com.guideon.simulation.result",
+        "com.guideon.plan.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
