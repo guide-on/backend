@@ -16,7 +16,6 @@ public class SimulationResultDetailDto {
     private LocalDateTime updatedAt;
 
     private String docSessionStatus;    // enum name
-    private Long businessId;
 
     private Integer totalCreditScore;
     private Integer hybridCreditScore;

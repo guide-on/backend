@@ -57,4 +57,36 @@ public class LoanSessionController {
             ));
         }
     }
+
+    /**
+     * 현재 진행 단계 조회
+     */
+    @GetMapping("/step/{businessId}")
+    public ResponseEntity<Map<String, Object>> getCurrentStep(
+            @PathVariable Long businessId) {
+
+        try {
+            String currentStep = loanSessionService.getCurrentStep(businessId);
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "currentStep", currentStep,
+                    "businessId", businessId
+            ));
+
+        } catch (IllegalArgumentException e) {
+            log.error("단계 조회 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+
+        } catch (Exception e) {
+            log.error("단계 조회 중 오류 발생", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "서버 오류가 발생했습니다."
+            ));
+        }
+    }
 }

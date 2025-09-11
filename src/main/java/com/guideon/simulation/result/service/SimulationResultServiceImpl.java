@@ -33,7 +33,7 @@ public class SimulationResultServiceImpl implements SimulationResultService {
 
         List<SimulationResultListDto> content = rows.stream().map(r -> {
             SimulationResultListDto dto = new SimulationResultListDto();
-            dto.setId(r.getId());
+            dto.setId(r.getSessionId());
             dto.setStartedAt(r.getStartedAt());
             dto.setFundName(r.getFundName());
             dto.setCurrentStep(safeEnum(r.getCurrentStep()));
@@ -50,11 +50,11 @@ public class SimulationResultServiceImpl implements SimulationResultService {
 
     @Override
     public SimulationResultDetailDto getDetail(Long id, Long memberId) {
-        SimulationResult r = mapper.findByIdAndMember(id, memberId);
+        SimulationResult r = mapper.findBySessionIdAndMember(id, memberId);
         if (r == null) throw new NotFoundException("시뮬레이션 결과를 찾을 수 없습니다.");
 
         SimulationResultDetailDto dto = new SimulationResultDetailDto();
-        dto.setId(r.getId());
+        dto.setId(r.getSessionId());
         dto.setMemberId(r.getMemberId());
         dto.setFundName(r.getFundName());
         dto.setCurrentStep(safeEnum(r.getCurrentStep()));
@@ -63,7 +63,6 @@ public class SimulationResultServiceImpl implements SimulationResultService {
         dto.setUpdatedAt(r.getUpdatedAt());
 
         dto.setDocSessionStatus(safeEnum(r.getDocSessionStatus()));
-        dto.setBusinessId(r.getBusinessId());
 
         dto.setTotalCreditScore(r.getTotalCreditScore());
         dto.setHybridCreditScore(r.getHybridCreditScore());
