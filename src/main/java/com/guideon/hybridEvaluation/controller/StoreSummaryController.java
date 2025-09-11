@@ -66,4 +66,18 @@ public class StoreSummaryController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/update-esg/{sessionId}")
+    @ApiOperation(value = "ESG 데이터 업데이트", notes = "ESG 관련 데이터를 업데이트합니다.")
+    public ResponseEntity<CommonResponseDTO<StoreSummaryResponse>> updateEsgData(
+            @ApiParam(value = "세션 ID", required = true) @PathVariable Long sessionId,
+            @ApiParam(value = "에너지 효율 기기 비율", required = true) @RequestParam Double energyEffRatio) {
+
+        log.info("ESG 데이터 업데이트 요청: sessionId={}, energyEffRatio={}", sessionId, energyEffRatio);
+
+        CommonResponseDTO<StoreSummaryResponse> response =
+            storeSummaryService.updateEsgData(sessionId, energyEffRatio);
+
+        return ResponseEntity.ok(response);
+    }
 }
