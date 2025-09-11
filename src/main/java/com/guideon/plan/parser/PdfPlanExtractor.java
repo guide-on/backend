@@ -48,7 +48,7 @@ public class PdfPlanExtractor {
             ts.setStartPage(1);
             ts.setEndPage(doc.getNumberOfPages());   // 전체 페이지 명시
             String raw = ts.getText(doc);
-            // log.debug("PDF text (len={}):\n{}", raw.length(), raw);
+            log.debug("PDF text (len={}):\n{}", raw.length(), raw);
             return parse(raw);
         }
     }

@@ -21,4 +21,6 @@ public interface SimulationResultMapper {
 
     /** 최근 COMPLETED 1건의 total_probability_pct */
     Double findLatestCompletedProbability(@Param("memberId") Long memberId);
+
+    void updatePlanResult(@Param("sessionId") Long sessionId, @Param("planTotalScore") double planTotalScore);
 }

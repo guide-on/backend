@@ -71,4 +71,12 @@
             LIMIT 1
     </select>
 
+    <update id="updatePlanResult">
+        UPDATE simulation_result
+        SET plan_total_score = #{planTotalScore},
+            current_step = 'RESULT',
+            overall_status = 'COMPLETED',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE session_id = #{sessionId}
+    </update>
 </mapper>
