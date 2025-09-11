@@ -110,6 +110,9 @@ dependencies {
     // ====== PDF 추출 ======
     implementation 'org.apache.pdfbox:pdfbox:2.0.30'     // PDF 텍스트 추출
 
+    // ====== Open ai ======
+    implementation "com.openai:openai-java:3.5.1"
+
     // ===== 테스트 관련 의존성 =====
     testImplementation "org.springframework:spring-test:${springVersion}"
     testCompileOnly "org.projectlombok:lombok:${lombokVersion}"

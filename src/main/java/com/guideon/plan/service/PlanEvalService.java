@@ -5,5 +5,6 @@ import com.guideon.plan.parser.PdfPlanExtractor;
 
 public interface PlanEvalService {
     PdfPlanExtractor evaluateDocument(Long sessionId) throws Exception;
+    void evaluateSessionWithAI(Long sessionId) throws Exception;
     EvaluationResultDTO getByReportId(Long reportId);
 }

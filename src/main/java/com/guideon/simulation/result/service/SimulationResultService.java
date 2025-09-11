@@ -11,4 +11,6 @@ public interface SimulationResultService {
 
     /** 홈 요약 */
     HomeSummaryDto getHomeSummary(Long memberId);
+
+    void updateSimulationStatus(Long sessionId, double planTotalScore);
 }
