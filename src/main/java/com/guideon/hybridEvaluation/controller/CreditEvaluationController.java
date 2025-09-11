@@ -85,5 +85,18 @@ public class CreditEvaluationController {
 
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/update-credit-data/{sessionId}")
+    @ApiOperation(value = "신용평가 데이터 업데이트", notes = "신용정보 조회 동의 후 신용평가 관련 데이터를 업데이트합니다.")
+    public ResponseEntity<CommonResponseDTO<CreditEvaluationResponse>> updateCreditData(
+            @ApiParam(value = "세션 ID", required = true) @PathVariable Long sessionId) {
+
+        log.info("신용평가 데이터 업데이트 요청: sessionId={}", sessionId);
+
+        CommonResponseDTO<CreditEvaluationResponse> response =
+            creditEvaluationService.updateCreditData(sessionId);
+
+        return ResponseEntity.ok(response);
+    }
 }
 

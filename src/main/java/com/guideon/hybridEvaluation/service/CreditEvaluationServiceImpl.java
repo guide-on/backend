@@ -16,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -380,6 +381,68 @@ public class CreditEvaluationServiceImpl implements CreditEvaluationService {
         
         if (request.getFinancialInstitutionCount() != null && request.getFinancialInstitutionCount() < 0) {
             throw new BadRequestException("거래 금융기관 수는 0 이상이어야 합니다.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public CommonResponseDTO<CreditEvaluationResponse> updateCreditData(Long sessionId) {
+        try {
+            log.info("신용평가 데이터 업데이트 시작: sessionId={}", sessionId);
+            
+            // 세션 ID 검증
+            if (sessionId == null) {
+                throw new BadRequestException("세션 ID는 필수 값입니다.");
+            }
+            
+            // 기존 데이터 조회
+            CreditEvaluation existingData = creditEvaluationMapper.selectLatestCreditEvaluation(sessionId);
+            if (existingData == null) {
+                throw new BadRequestException("업데이트를 실패하였습니다. 해당 세션 ID에 대한 신용평가 데이터가 존재하지 않습니다.");
+            }
+            
+            // 신용평가 관련 하드코딩 데이터로 업데이트
+            existingData.setTotalOverdueCount(1);                                    // 총 연체 횟수
+            existingData.setRecent12mOverdueCount(0);                                // 최근 12개월 연체 횟수
+            existingData.setMaxOverdueDays(5);                                       // 최대 연체일수
+            existingData.setCurrentOverdueAmount(new BigDecimal("0.00"));            // 현재 연체금액 (원)
+            existingData.setLoanDefaultHistory(0);                                   // 대출 부도이력 (0:없음, 1:있음)
+            existingData.setCreditCardDelayRate(new BigDecimal("0.50"));             // 신용카드 연체율 (%)
+            existingData.setPaymentConsistencyScore(95);                             // 납부 일관성 점수 (0-100)
+            existingData.setTotalDebtAmount(new BigDecimal("50000000.00"));          // 총 부채금액 (원)
+            existingData.setMonthlyIncome(new BigDecimal("10000000.00"));            // 월소득 (원)
+            existingData.setDebtToIncomeRatio(new BigDecimal("41.67"));              // 부채대소득비율 (%)
+            existingData.setCreditCardUtilizationRate(new BigDecimal("30.00"));      // 신용카드 이용률 (%)
+            existingData.setSecuredVsUnsecuredRatio(new BigDecimal("80.00"));        // 담보대출/신용대출 비율
+            existingData.setCreditHistoryMonths(120);                                // 신용거래 총 개월수
+            existingData.setOldestCreditAccountMonths(180);                          // 최초 신용거래 경과월수
+            existingData.setNewCreditInquiries6m(2);                                 // 최근 6개월 신용조회 횟수
+            existingData.setActiveCreditCardCount(3);                                // 활성 신용카드 수
+            existingData.setTotalCreditLimit(new BigDecimal("20000000.00"));         // 총 신용한도 (원)
+            existingData.setLoanTypeDiversity(4);                                    // 대출상품 다양성 (0-5)
+            existingData.setFinancialInstitutionCount(2);                            // 거래 금융기관 수
+            existingData.setAlternativeCreditScore(85);                              // 대안신용점수 (0-100)
+            
+            // 업데이트 시간 설정
+            existingData.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+            
+            // 데이터베이스 업데이트
+            log.info("신용평가 데이터 데이터베이스 업데이트 시작...");
+            int updateResult = creditEvaluationMapper.updateCreditEvaluation(existingData);
+            log.info("신용평가 데이터 UPDATE 결과: {}", updateResult);
+            
+            if (updateResult == 0) {
+                throw new BadRequestException("신용평가 데이터 업데이트에 실패했습니다.");
+            }
+            
+            CreditEvaluationResponse response = convertToResponse(existingData);
+            
+            log.info("신용평가 데이터 업데이트 완료: sessionId={}", sessionId);
+            return CommonResponseDTO.success("신용평가 관련 데이터가 성공적으로 업데이트되었습니다.", response);
+            
+        } catch (Exception e) {
+            log.error("신용평가 데이터 업데이트 중 오류 발생: sessionId={}, error={}", sessionId, e.getMessage(), e);
+            throw new BadRequestException("신용평가 데이터 업데이트 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
 }
